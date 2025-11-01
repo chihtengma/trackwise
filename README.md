@@ -5,6 +5,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.120-green.svg)](https://fastapi.tiangolo.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-blue.svg)](https://postgresql.org)
+[![CI](https://github.com/YOUR_USERNAME/TrackWise/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/TrackWise/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -395,6 +396,17 @@ Weather data for commute planning. Get an API key from:
 - Update documentation as needed
 - Run `make lint` before committing
 - Keep commits atomic and well-described
+
+### CI/CD
+
+The project uses GitHub Actions for continuous integration:
+
+- **Automated Testing**: Runs on every push and PR to `main` and `develop`
+- **Code Quality**: Checks formatting with Black and linting with Flake8
+- **Database Testing**: Spins up PostgreSQL container for integration tests
+- **Multi-job Pipeline**: Separate jobs for tests and code formatting checks
+
+View CI status: [![CI](https://github.com/chihtengma/TrackWise/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/TrackWise/actions/workflows/ci.yml)
 
 ---
 
