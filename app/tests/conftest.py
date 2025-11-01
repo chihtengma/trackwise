@@ -30,10 +30,12 @@ def unique_username():
 async def client():
     """
     Create an async HTTP client for testing.
-    
+
     Yields:
         AsyncClient: HTTP client configured for testing the app
     """
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test", timeout=30.0) as client:
+    async with AsyncClient(
+        transport=transport, base_url="http://test", timeout=30.0
+    ) as client:
         yield client
