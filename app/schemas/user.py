@@ -26,20 +26,20 @@ class UserBase(BaseModel):
     email: EmailStr = Field(
         ...,
         description="User's email address",
-        example="user@example.com",
+        json_schema_extra={"example": "user@example.com"},
     )
     username: str = Field(
         ...,
         min_length=3,
         max_length=50,
         description="User's username",
-        example="john_doe",
+        json_schema_extra={"example": "john_doe"},
     )
     full_name: Optional[str] = Field(
         None,
         max_length=255,
         description="User's full name",
-        example="[John Doe]",
+        json_schema_extra={"example": "John Doe"},
     )
 
     @field_validator("username")
