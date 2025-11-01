@@ -191,7 +191,7 @@ class UserResponse(UserBase):
     )
 
     # Pydantic configuration
-    model_confiog = {
+    model_config = {
         "from_attributes": True,  # Allows creation from ORM models
         "json_schema_extra": {
             "example": {
