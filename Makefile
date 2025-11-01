@@ -1,4 +1,4 @@
-.PHONY: help install run test clean migrate db-upgrade db-downgrade format lint db-create
+.PHONY: help install run test test-api clean migrate db-upgrade db-downgrade format lint db-create
 
 # Default target - show help
 help:
@@ -8,6 +8,7 @@ help:
 	@echo "  make install        - 🔧 Set up virtual environment and install dependencies"
 	@echo "  make run           - 🚀 Run the development server"
 	@echo "  make test          - 🧪 Run tests with pytest"
+	@echo "  make test-api      - 🧪 Test all API endpoints (requires server running)"
 	@echo "  make db-create     - 🗄️  Create database if it doesn't exist"
 	@echo "  make migrate       - 🔄 Create a new database migration"
 	@echo "  make db-upgrade    - ⬆️  Apply database migrations"
@@ -47,7 +48,14 @@ run:
 # Run tests
 test:
 	@echo "🧪 Running tests..."
-	.venv/bin/pytest tests/ -v --cov=app --cov-report=term-missing
+	.venv/bin/pytest app/tests/ -v --cov=app --cov-report=term-missing
+
+# Test all API endpoints
+test-api:
+	@echo "🧪 Testing all API endpoints..."
+	@echo "📋 Make sure the server is running: make run"
+	@echo ""
+	PYTHONPATH=. .venv/bin/python scripts/test_api.py
 
 # Create database if it doesn't exist
 db-create:
@@ -73,12 +81,12 @@ db-downgrade:
 # Format code
 format:
 	@echo "🎨 Formatting code with black..."
-	.venv/bin/black app/ tests/
+	.venv/bin/black app/
 
 # Lint code
 lint:
 	@echo "🔍 Running linting checks..."
-	.venv/bin/flake8 app/ tests/
+	.venv/bin/flake8 app/
 	.venv/bin/mypy app/
 
 # Clean generated files

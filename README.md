@@ -141,10 +141,15 @@ backend/
 │   │   └── user.py         # Request/response schemas
 │   ├── services/           # Business logic layer
 │   ├── tests/              # Test suite
+│   │   ├── conftest.py     # Pytest fixtures
+│   │   ├── test_main.py    # Main endpoint tests
+│   │   ├── test_auth.py    # Auth endpoint tests
+│   │   └── test_users.py   # User endpoint tests
 │   ├── utils/              # Utility functions
 │   └── main.py             # FastAPI application
 ├── scripts/
-│   └── create_db.py        # Database creation utility
+│   ├── create_db.py        # Database creation utility
+│   └── test_api.py         # API integration tests
 ├── .env.example            # Environment variables template
 ├── alembic.ini             # Alembic configuration
 ├── Makefile                # Development commands
@@ -221,24 +226,53 @@ make db-downgrade
 
 ## 🧪 Testing
 
-### Run All Tests
+The project includes two types of tests:
+
+### 1. Unit/Integration Tests (pytest)
+
+Run the full test suite with coverage:
 
 ```bash
 make test
 ```
 
-### Run Specific Test
+Run specific test files:
 
 ```bash
-.venv/bin/pytest app/tests/test_user.py -v
+.venv/bin/pytest app/tests/test_main.py -v --no-cov
+.venv/bin/pytest app/tests/test_auth.py -v --no-cov
+.venv/bin/pytest app/tests/test_users.py -v --no-cov
 ```
 
-### Run with Coverage
+View coverage report:
 
 ```bash
-make test
-# Coverage report: htmlcov/index.html
+# HTML report generated at: htmlcov/index.html
+open htmlcov/index.html
 ```
+
+### 2. API Integration Tests
+
+For comprehensive API endpoint testing (requires running server):
+
+```bash
+# Start the server
+make run
+
+# In another terminal, run API tests
+python scripts/test_api.py
+# Or
+make test-api
+```
+
+The API test script checks all endpoints including:
+
+- Authentication (register, login)
+- User management (CRUD operations)
+- Authorization (token validation)
+- Error handling
+
+**Note**: Pytest integration tests are currently in development. The API test script (`scripts/test_api.py`) provides full coverage of all endpoints and is the recommended way to verify the API functionality.
 
 ---
 
@@ -398,11 +432,13 @@ make install
 ### Migration Issues
 
 ```bash
-# Check migration status
-.venv/bin/alembic current
+# Use make commands (they automatically use the right Python)
+make db-upgrade
 
-# View migration history
-.venv/bin/alembic history
+# Or ensure venv is activated before running alembic directly
+source .venv/bin/activate
+.venv/bin/alembic current  # Check migration status
+.venv/bin/alembic history  # View migration history
 
 # Rollback and retry
 make db-downgrade
@@ -424,7 +460,7 @@ For issues and questions:
 
 - **GitHub Issues**: [Create an issue](../../issues)
 - **Documentation**: Check `/docs` endpoint when server is running
-- **Email**: [Your email]
+- **Email**: [chihtengma416@gmail.com]
 
 ---
 

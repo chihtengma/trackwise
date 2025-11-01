@@ -67,6 +67,13 @@ class User(Base):
         String(255), nullable=False, comment="Argon2 hashed password"
     )
 
+    # Personal Information
+    full_name = Column(
+        String(255),
+        nullable=True,
+        comment="User's full name",
+    )
+
     # Status Fields
     is_active = Column(
         Boolean,
