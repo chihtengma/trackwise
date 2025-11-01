@@ -180,10 +180,11 @@ async def test_update_another_user_forbidden(client, unique_email, unique_userna
 
     # Register and login as user 2 with different unique values
     import time
+
     timestamp = int(time.time() * 1000000)
     email2 = f"user2_{timestamp}@test.com"
     username2 = f"user2_{timestamp}"
-    
+
     await client.post(
         "/api/v1/auth/register",
         json={

@@ -34,7 +34,7 @@ async def test_register_user(client, unique_email, unique_username):
 async def test_register_duplicate_email(client, unique_username):
     """Test that duplicate email registration fails."""
     unique_email = "duplicate@test.com"
-    
+
     # Register first user
     await client.post(
         "/api/v1/auth/register",
@@ -62,7 +62,7 @@ async def test_register_duplicate_email(client, unique_username):
 async def test_register_duplicate_username(client, unique_email):
     """Test that duplicate username registration fails."""
     unique_username = "uniqueuser"
-    
+
     # Register first user
     await client.post(
         "/api/v1/auth/register",
