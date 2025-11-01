@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.120-green.svg)](https://fastapi.tiangolo.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-blue.svg)](https://postgresql.org)
-[![CI](https://github.com/YOUR_USERNAME/TrackWise/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/TrackWise/actions/workflows/ci.yml)
+[![CI](https://github.com/chihtengma/TrackWise/actions/workflows/ci.yml/badge.svg)](https://github.com/chihtengma/TrackWise/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -325,6 +325,30 @@ source .venv/bin/activate  # On macOS/Linux
 2. Run `make install`
 3. Update version pins if needed
 
+### Pre-commit Hooks (Optional)
+
+Install pre-commit hooks to automatically check code quality before commits:
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install git hooks
+pre-commit install
+
+# Run on all files
+pre-commit run --all-files
+```
+
+Hooks check for:
+
+- Secret detection (prevents committing real secrets)
+- Code formatting (Black)
+- Linting (Flake8)
+- YAML syntax
+- Large files
+- Merge conflicts
+
 ---
 
 ## 🔐 Security
@@ -335,6 +359,8 @@ source .venv/bin/activate  # On macOS/Linux
 - Use strong `SECRET_KEY` in production
 - Rotate keys periodically
 - Use environment-specific configs
+- Pre-commit hooks detect secrets before commit
+- CI workflow uses isolated test values only
 
 ### Password Hashing
 
@@ -406,7 +432,7 @@ The project uses GitHub Actions for continuous integration:
 - **Database Testing**: Spins up PostgreSQL container for integration tests
 - **Multi-job Pipeline**: Separate jobs for tests and code formatting checks
 
-View CI status: [![CI](https://github.com/chihtengma/TrackWise/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/TrackWise/actions/workflows/ci.yml)
+View CI status: [![CI](https://github.com/chihtengma/TrackWise/actions/workflows/ci.yml/badge.svg)](https://github.com/chihtengma/TrackWise/actions/workflows/ci.yml)
 
 ---
 
