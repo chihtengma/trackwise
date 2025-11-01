@@ -13,6 +13,8 @@ jobs:
 
         env:
             PYTHONPATH: ${{ github.workspace }}
+            # NOTE: These are test values for CI only, not real secrets
+            # They only exist within the isolated CI environment
             DATABASE_URL: postgresql://postgres:postgres@localhost:5432/trackwise_test
             SECRET_KEY: test_secret_key_123456789012345678901234567890
             OPENWEATHER_API_KEY: test_weather_api_key
