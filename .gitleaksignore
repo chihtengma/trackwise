@@ -1,0 +1,3 @@
+# Ignore test secrets in CI workflow
+.github/workflows/ci.yml
+
