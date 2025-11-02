@@ -1,11 +1,11 @@
-# 🚇 TrackWise Transit AI Assistant
+# TrackWise Backend
 
-> An intelligent transit assistant backend powered by FastAPI, providing real-time transit data, weather information, and AI-powered recommendations for NYC commuters.
+FastAPI backend service for TrackWise - NYC Transit AI Assistant.
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.120-green.svg)](https://fastapi.tiangolo.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-blue.svg)](https://postgresql.org)
-[![CI](https://github.com/chihtengma/TrackWise/actions/workflows/ci.yml/badge.svg)](https://github.com/chihtengma/TrackWise/actions/workflows/ci.yml)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -28,20 +28,34 @@
 ### Prerequisites
 
 - **Python 3.12+**
-- **PostgreSQL 16+**
-- **Redis** (optional, for caching)
-- **pip** and **venv**
+- **Docker & Docker Compose** (recommended) OR **PostgreSQL 16+** (local)
+- **Redis** (optional, included in Docker setup)
+
+### Database Options
+
+TrackWise backend supports two database configurations:
+
+#### Option 1: Docker PostgreSQL (Recommended)
+- Isolated development environment
+- No local PostgreSQL installation needed
+- Includes Redis for caching
+- Easy cleanup and reset
+
+#### Option 2: Local PostgreSQL (Homebrew/Native)
+- Uses your system's PostgreSQL installation
+- Good for existing PostgreSQL users
+- Requires manual PostgreSQL setup
 
 ### Installation
 
 1. **Clone the repository**
 
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/chihtengma/trackwise.git
    cd TrackWise/backend
    ```
 
-2. **Install dependencies**
+2. **Install Python dependencies**
 
    ```bash
    make install
@@ -52,72 +66,86 @@
    - Install all required packages from `requirements.txt`
    - Set up the development environment
 
-3. **Configure environment variables**
+3. **Choose your database setup**
 
+   #### For Docker Database (Recommended):
    ```bash
-   cp .env.example .env
-   ```
+   # Start Docker containers
+   make docker-up
 
-   Edit `.env` with your configuration:
-
-   ```bash
-   # Required: Database
-   DATABASE_URL=postgresql://username:password@localhost:5432/trackwise
-
-   # Required: Security
-   SECRET_KEY=your-secret-key-here-change-in-production
-   # Generate a secure key with: openssl rand -hex 32
-
-   # Required: Weather API
-   OPENWEATHER_API_KEY=your_openweather_api_key
-
-   # Optional: MTA Bus Time API
-   MTA_BUS_API_KEY=your_mta_bus_api_key_if_needed
-   ```
-
-4. **Create the database**
-
-   ```bash
-   make db-create
-   ```
-
-   This automatically creates the PostgreSQL database if it doesn't exist.
-
-5. **Run migrations**
-
-   ```bash
+   # Run database migrations
    make db-upgrade
-   ```
 
-   This applies all database schema migrations.
-
-6. **Start the development server**
-
-   ```bash
+   # Start server (uses Docker DB by default)
    make run
    ```
 
-   The API will be available at:
-   - **Main API**: <http://localhost:8000>
-   - **Interactive Docs**: <http://localhost:8000/docs>
-   - **Alternative Docs**: <http://localhost:8000/redoc>
+   #### For Local Database:
+   ```bash
+   # Ensure PostgreSQL is running
+   brew services start postgresql@16  # macOS with Homebrew
+
+   # Create database
+   createdb trackwise
+
+   # Run migrations
+   make db-upgrade
+
+   # Start server with local DB
+   make run-local
+   ```
+
+4. **Configure API keys** (Optional)
+
+   ```bash
+   # Copy environment template
+   cp .env.example .env
+
+   # Edit .env to add your API keys:
+   OPENWEATHER_API_KEY=your_openweather_api_key
+   MTA_BUS_API_KEY=your_mta_bus_api_key_if_needed
+   ```
+
+The API will be available at:
+- **Main API**: <http://localhost:8000>
+- **Interactive Docs**: <http://localhost:8000/docs>
+- **Alternative Docs**: <http://localhost:8000/redoc>
 
 ---
 
 ## 📋 Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `make install` | Set up virtual environment and install dependencies |
-| `make run` | Start the development server with auto-reload |
-| `make test` | Run the full test suite with coverage |
-| `make db-create` | Create database if it doesn't exist |
-| `make migrate` | Create a new database migration |
-| `make db-upgrade` | Apply all pending migrations |
-| `make db-downgrade` | Rollback the last migration |
-| `make format` | Format code with Black |
-| `make lint` | Run Flake8 and MyPy linting |
-| `make clean` | Remove generated files and caches |
+### Makefile Commands
+
+| Command | Description | Database |
+|---------|-------------|----------|
+| `make install` | Set up virtual environment and install dependencies | - |
+| `make run` | Start server with **Docker** database (default) | Docker |
+| `make run-local` | Start server with **local** database | Local |
+| `make test` | Run the full test suite with coverage | Current |
+| `make test-api` | Run API integration tests | Current |
+| `make docker-up` | Start Docker PostgreSQL & Redis containers | Docker |
+| `make docker-down` | Stop all Docker containers | Docker |
+| `make docker-status` | Check Docker containers status | Docker |
+| `make docker-db` | Connect to Docker PostgreSQL shell | Docker |
+| `make db-create` | Create database if it doesn't exist | Current |
+| `make migrate` | Create a new database migration | Current |
+| `make db-upgrade` | Apply all pending migrations | Current |
+| `make db-downgrade` | Rollback the last migration | Current |
+| `make format` | Format code with Black | - |
+| `make lint` | Run Flake8 and MyPy linting | - |
+| `make clean` | Remove generated files and caches | - |
+
+### Interactive Scripts
+
+Located in `scripts/` directory - these provide interactive menus and detailed feedback:
+
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| `start_server.sh` | Interactive server starter with DB selection | `./scripts/start_server.sh` |
+| `setup_database.sh` | Database setup wizard (Docker or Local) | `./scripts/setup_database.sh` |
+| `check_database.sh` | Check DB connection and display user stats | `./scripts/check_database.sh` |
+| `test_api.sh` | Run tests with options (unit/integration/both) | `./scripts/test_api.sh` |
 
 ---
 
@@ -125,7 +153,7 @@
 
 ```text
 backend/
-├── alembic/                 # Database migration scripts
+├── alembic/                # Database migration scripts
 │   ├── versions/           # Migration history
 │   └── env.py              # Alembic configuration
 ├── app/
@@ -149,11 +177,19 @@ backend/
 │   ├── utils/              # Utility functions
 │   └── main.py             # FastAPI application
 ├── scripts/
-│   ├── create_db.py        # Database creation utility
-│   └── test_api.py         # API integration tests
-├── .env.example            # Environment variables template
+│   ├── start_server.sh     # Interactive server launcher
+│   ├── setup_database.sh   # Database setup wizard
+│   ├── check_database.sh   # Database status checker
+│   ├── test_api.sh         # Test runner with options
+│   ├── create_db.py        # Python DB creation utility
+│   └── test_api.py         # Python API integration tests
+├── .env                    # Current environment (created from .env.docker or .env.local)
+├── .env.docker             # Docker database configuration
+├── .env.local              # Local database configuration
+├── .env.example            # Environment template with all variables
+├── docker-compose.yml      # Docker services configuration
 ├── alembic.ini             # Alembic configuration
-├── Makefile                # Development commands
+├── Makefile                # Development automation commands
 ├── pytest.ini              # Pytest configuration
 ├── requirements.txt        # Python dependencies
 └── README.md               # This file
@@ -162,6 +198,51 @@ backend/
 ---
 
 ## 🔧 Configuration
+
+### Database Configuration
+
+The backend supports dual database configurations managed through environment files:
+
+#### Docker Database Configuration (`.env.docker`)
+```bash
+DATABASE_URL=postgresql://trackwise:trackwise_dev@localhost:5432/trackwise
+```
+- **User**: trackwise
+- **Password**: trackwise_dev
+- **Database**: trackwise
+- **Host**: localhost (Docker container)
+- **Port**: 5432
+
+#### Local Database Configuration (`.env.local`)
+```bash
+DATABASE_URL=postgresql://your_username:@localhost:5432/trackwise
+```
+- **User**: Your system username
+- **Password**: Empty (peer authentication)
+- **Database**: trackwise
+- **Host**: localhost
+- **Port**: 5432
+
+#### Switching Between Databases
+
+**Method 1: Using Makefile (Simple)**
+```bash
+make run          # Uses Docker database
+make run-local    # Uses local database
+```
+
+**Method 2: Using Interactive Script (Detailed)**
+```bash
+./scripts/start_server.sh  # Interactive menu to choose database
+```
+
+**Method 3: Manual Environment File**
+```bash
+cp .env.docker .env  # Use Docker database
+# OR
+cp .env.local .env   # Use local database
+make run
+```
 
 ### Required Environment Variables
 
@@ -191,6 +272,65 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
 ```
 
 This accepts comma-separated origins. Use `settings.allowed_origins_list` in code to get a Python list.
+
+---
+
+## 💡 Common Workflows
+
+### First Time Setup with Docker
+```bash
+make install          # Install Python dependencies
+make docker-up        # Start Docker containers
+make db-upgrade       # Run migrations
+make run             # Start server (uses Docker DB)
+```
+
+### First Time Setup with Local Database
+```bash
+make install                      # Install Python dependencies
+brew services start postgresql@16 # Start PostgreSQL
+createdb trackwise                # Create database
+make db-upgrade                   # Run migrations
+make run-local                   # Start server (uses local DB)
+```
+
+### Daily Development
+```bash
+# With Docker
+make docker-up       # Ensure containers are running
+make run            # Start server
+
+# With Local
+brew services start postgresql@16  # Ensure PostgreSQL is running
+make run-local                     # Start server
+```
+
+### Check Database Status
+```bash
+# Quick check
+make docker-status   # For Docker
+# OR
+./scripts/check_database.sh  # Detailed status for any DB
+```
+
+### Switch Between Databases
+```bash
+# From Local to Docker
+make docker-up
+make run  # Now using Docker
+
+# From Docker to Local
+brew services start postgresql@16
+make run-local  # Now using local
+```
+
+### Running Tests
+```bash
+make test        # Unit tests with pytest
+make test-api    # API integration tests
+# OR
+./scripts/test_api.sh  # Interactive test menu
+```
 
 ---
 

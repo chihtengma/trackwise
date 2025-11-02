@@ -43,12 +43,22 @@ class _LoginScreenState extends State<LoginScreen> {
           setState(() => _isLoading = false);
 
           if (success) {
+            // Show success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Login successful!'),
+                backgroundColor: Color(0xFF10B981),
+                duration: Duration(seconds: 2),
+              ),
+            );
+
+            // Navigate to home screen
             Navigator.of(context)
                 .pushNamedAndRemoveUntil('/home', (route) => false);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Login failed'),
+                content: Text('Login failed. Please try again.'),
                 backgroundColor: Color(0xFFE53935),
               ),
             );
@@ -57,10 +67,29 @@ class _LoginScreenState extends State<LoginScreen> {
       } catch (e) {
         if (mounted) {
           setState(() => _isLoading = false);
+
+          String errorMessage = 'An error occurred';
+
+          // Handle specific error types
+          if (e.toString().contains('UnauthorizedException')) {
+            errorMessage = 'Invalid email or password';
+          } else if (e.toString().contains('NetworkException')) {
+            errorMessage = 'Network error. Please check your connection';
+          } else if (e.toString().contains('TimeoutException')) {
+            errorMessage = 'Request timeout. Please try again';
+          } else if (e.toString().contains('ServerException')) {
+            errorMessage = 'Server error. Please try again later';
+          } else if (e.toString().contains('InactiveUserError')) {
+            errorMessage = 'Your account is inactive. Please contact support';
+          } else {
+            errorMessage = 'Login failed: ${e.toString().replaceAll('Exception:', '').trim()}';
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.toString()}'),
+              content: Text(errorMessage),
               backgroundColor: const Color(0xFFE53935),
+              duration: const Duration(seconds: 4),
             ),
           );
         }

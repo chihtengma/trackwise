@@ -1,137 +1,173 @@
-# TrackWise
+# 🚇 TrackWise - NYC Transit AI Assistant
 
-A real-time transit tracking application for NYC commuters, providing live subway updates, weather information, and route management.
+An intelligent transit application that combines real-time MTA data with AI-powered recommendations to optimize NYC commutes. Features live subway updates, weather-aware route planning, and personalized transit insights.
 
-## Project Structure
+## ✨ Key Features
+
+- 🚊 **Real-time MTA Updates** - Live subway and bus tracking
+- 🌤️ **Weather-Aware Planning** - Commute suggestions based on weather
+- 🤖 **AI Recommendations** - Smart route optimization
+- 📍 **Saved Routes** - Quick access to frequent destinations
+- 🔔 **Smart Notifications** - Alerts for delays and disruptions
+- 🔐 **Secure Authentication** - JWT-based user accounts
+
+## 🛠️ Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| **Backend** | FastAPI (Python 3.12+) |
+| **Frontend** | Flutter (Dart) |
+| **Database** | PostgreSQL 16+ with SQLAlchemy |
+| **Cache** | Redis |
+| **Authentication** | JWT with Argon2 hashing |
+| **APIs** | MTA GTFS-RT, OpenWeatherMap |
+| **Container** | Docker & Docker Compose |
+
+## 📁 Project Structure
 
 ```
 TrackWise/
-├── backend/          # FastAPI backend application
-│   ├── app/         # Application code
-│   ├── alembic/     # Database migrations
-│   └── tests/       # Backend tests
-└── frontend/        # Flutter mobile application
-    ├── lib/         # Flutter application code
-    ├── android/     # Android-specific files
-    └── ios/         # iOS-specific files
+├── backend/                 # FastAPI backend server
+│   ├── app/                # Core application code
+│   ├── alembic/            # Database migrations
+│   ├── docker-compose.yml  # Docker services setup
+│   └── Makefile            # Automation commands
+│
+├── frontend/               # Flutter mobile app
+│   ├── lib/               # Dart source code
+│   ├── assets/            # Images and resources
+│   └── pubspec.yaml       # Flutter dependencies
+│
+└── README.md              # This file
 ```
 
-## Features
+## 🚀 Quick Start
 
-- **Real-time Transit Updates**: Live NYC subway status and arrival times
-- **Weather Integration**: Current weather conditions affecting your commute
-- **Route Management**: Save and manage frequently used routes
-- **User Authentication**: Secure user accounts with JWT authentication
-- **Background Updates**: Scheduled notifications for route disruptions
+### Prerequisites
 
-## Tech Stack
+- **Backend**: Python 3.12+, Docker & Docker Compose
+- **Frontend**: Flutter 3.5+, Dart 3.5+
+- **Mobile**: iOS Simulator/Device or Android Emulator/Device
 
-### Backend
-- **Framework**: FastAPI (Python)
-- **Database**: PostgreSQL with SQLAlchemy ORM
-- **Cache**: Redis for performance optimization
-- **Authentication**: JWT tokens
-- **Task Scheduling**: APScheduler for background tasks
+### One-Command Setup
 
-### Frontend
-- **Framework**: Flutter
-- **State Management**: Provider/Riverpod
-- **HTTP Client**: Dio
-- **Local Storage**: Shared Preferences
+```bash
+# Clone the repository
+git clone https://github.com/chihtengma/trackwise.git
+cd TrackWise
 
-## Getting Started
+# Start backend (Docker)
+cd backend
+make docker-up    # Start PostgreSQL & Redis
+make install      # Install Python dependencies
+make db-upgrade   # Run database migrations
+make run          # Start server on http://localhost:8000
 
-### Backend Setup
+# Start frontend (new terminal)
+cd frontend
+flutter pub get   # Install dependencies
+flutter run       # Launch app
+```
 
-1. Navigate to the backend directory:
+## 📱 Mobile App Screens
+
+| Screen | Description | Status |
+|--------|-------------|--------|
+| Onboarding | Welcome flow with app introduction | ✅ Complete |
+| Authentication | Login & Signup with validation | ✅ Complete |
+| Home Dashboard | Real-time transit overview | 🚧 In Progress |
+| Route Planning | AI-powered trip suggestions | 📋 Planned |
+| Saved Routes | Favorite destinations | 📋 Planned |
+
+## 🔧 Development
+
+### Backend Commands
+
 ```bash
 cd backend
+make docker-up      # Start Docker containers
+make run            # Run server (Docker DB)
+make test           # Run test suite
+make docker-status  # Check container status
 ```
 
-2. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+### Frontend Commands
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-5. Run database migrations:
-```bash
-alembic upgrade head
-```
-
-6. Start the server:
-```bash
-uvicorn app.main:app --reload
-```
-
-The API will be available at `http://localhost:8000`
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
 ```bash
 cd frontend
+flutter run         # Run in debug mode
+flutter build ios   # Build for iOS
+flutter build apk   # Build for Android
+flutter test        # Run tests
 ```
 
-2. Install Flutter dependencies:
+## 📚 Documentation
+
+- **Backend Details**: See [backend/README.md](backend/README.md)
+- **Frontend Details**: See [frontend/README.md](frontend/README.md)
+- **API Docs**: `http://localhost:8000/docs` (when server is running)
+
+## 🧪 Testing
+
+The project includes comprehensive test coverage:
+
 ```bash
-flutter pub get
+# Backend tests
+cd backend && make test
+
+# Frontend tests
+cd frontend && flutter test
+
+# API integration tests
+cd backend && make test-api
 ```
 
-3. Set up environment configuration:
-```bash
-cp .env.example .env
-# Edit .env with your API URL
-```
+## 🔐 Security
 
-4. Run the application:
-```bash
-flutter run
-```
+- Password hashing with Argon2
+- JWT token authentication
+- Environment-based configuration
+- Secure storage for mobile tokens
+- CORS protection
 
-## API Documentation
+## 🌐 External Services
 
-When the backend is running, you can access:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+| Service | Purpose | Required |
+|---------|---------|----------|
+| MTA GTFS-RT | Real-time transit data | ✅ No API key |
+| OpenWeatherMap | Weather conditions | ✅ API key required |
+| MTA Bus Time | Bus tracking | ⚪ Optional |
 
-## Testing
+## 🤝 Contributing
 
-### Backend Tests
-```bash
-cd backend
-pytest
-```
-
-### Frontend Tests
-```bash
-cd frontend
-flutter test
-```
-
-## Contributing
+We welcome contributions! Please:
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Write tests for new features
+4. Ensure all tests pass
+5. Submit a pull request
 
-## License
+## 📝 License
 
-This project is licensed under the MIT License.
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## Contact
+## 📞 Support
 
-Project Link: [https://github.com/chihtengma/trackwise](https://github.com/chihtengma/trackwise)
+- **Issues**: [GitHub Issues](https://github.com/chihtengma/trackwise/issues)
+- **Email**: chihtengma416@gmail.com
+
+## 🎯 Roadmap
+
+- [x] User authentication system
+- [x] Onboarding flow
+- [ ] Real-time subway tracking
+- [ ] AI route recommendations
+- [ ] Push notifications
+- [ ] Offline mode
+- [ ] Apple Watch app
+- [ ] Transit history analytics
+
+---
+
+**Built with ❤️ for NYC commuters**

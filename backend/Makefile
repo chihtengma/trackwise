@@ -1,24 +1,35 @@
-.PHONY: help install run test test-api clean migrate db-upgrade db-downgrade format lint db-create
+.PHONY: help install run run-local test test-api clean migrate db-upgrade db-downgrade format lint db-create docker-up docker-down docker-status docker-db
 
 # Default target - show help
 help:
 	@echo "📋 TrackWise Transit AI - Available Commands"
 	@echo "========================================"
 	@echo ""
-	@echo "  make install        - 🔧 Set up virtual environment and install dependencies"
-	@echo "  make run           - 🚀 Run the development server"
-	@echo "  make test          - 🧪 Run tests with pytest"
-	@echo "  make test-api      - 🧪 Test all API endpoints (requires server running)"
+	@echo "🐳 Docker Database Commands:"
+	@echo "  make docker-up     - 🚀 Start Docker PostgreSQL & Redis"
+	@echo "  make docker-down   - 🛑 Stop Docker containers"
+	@echo "  make docker-status - 📊 Check Docker containers status"
+	@echo "  make docker-db     - 🔍 Connect to Docker PostgreSQL shell"
+	@echo ""
+	@echo "🚀 Server Commands:"
+	@echo "  make run           - 🐳 Run server with Docker database"
+	@echo "  make run-local     - 💻 Run server with local database"
+	@echo ""
+	@echo "🔧 Setup & Database:"
+	@echo "  make install       - 📦 Set up virtual environment and install dependencies"
 	@echo "  make db-create     - 🗄️  Create database if it doesn't exist"
 	@echo "  make migrate       - 🔄 Create a new database migration"
 	@echo "  make db-upgrade    - ⬆️  Apply database migrations"
 	@echo "  make db-downgrade  - ⬇️  Rollback last migration"
+	@echo ""
+	@echo "🧪 Testing & Quality:"
+	@echo "  make test          - 🧪 Run tests with pytest"
+	@echo "  make test-api      - 🧪 Test all API endpoints"
 	@echo "  make format        - 🎨 Format code with black"
 	@echo "  make lint          - 🔍 Run linting checks"
 	@echo "  make clean         - 🧹 Remove generated files and caches"
 	@echo ""
-	@echo "First time setup: make install"
-	@echo "Start coding:     make run"
+	@echo "Quick start: make docker-up && make run"
 	@echo ""
 
 # Install dependencies
@@ -38,11 +49,36 @@ install:
 	@echo "  3. Run 'make run' to start the server"
 	@echo ""
 
-# Run development server
+# Run development server with Docker database
 run:
-	@echo "🚀 Starting development server..."
+	@echo "🐳 Starting development server with Docker PostgreSQL..."
 	@echo "📚 API docs will be available at: http://localhost:8000/docs"
 	@echo ""
+	@# Ensure we're using Docker database configuration
+	@if [ -f .env.docker ]; then \
+		cp .env.docker .env; \
+		echo "✅ Using Docker database configuration"; \
+	fi
+	@# Check if Docker PostgreSQL is running
+	@if ! docker ps | grep -q trackwise_postgres; then \
+		echo "⚠️  Docker PostgreSQL is not running!"; \
+		echo "Run 'make docker-up' first"; \
+		exit 1; \
+	fi
+	@echo "🚀 Starting server..."
+	DATABASE_URL="postgresql://trackwise:trackwise_dev@localhost:5432/trackwise" .venv/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Run development server with local database
+run-local:
+	@echo "💻 Starting development server with local PostgreSQL..."
+	@echo "📚 API docs will be available at: http://localhost:8000/docs"
+	@echo ""
+	@# Ensure we're using local database configuration
+	@if [ -f .env.local ]; then \
+		cp .env.local .env; \
+		echo "✅ Using local database configuration"; \
+	fi
+	@echo "🚀 Starting server..."
 	.venv/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Run tests
@@ -98,3 +134,35 @@ clean:
 	find . -type d -name "htmlcov" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name ".coverage" -delete
 	@echo "✅ Cleanup complete!"
+
+# Docker commands
+docker-up:
+	@echo "🐳 Starting Docker containers..."
+	docker-compose up -d
+	@echo ""
+	@echo "⏳ Waiting for PostgreSQL to be ready..."
+	@sleep 5
+	@echo "✅ Docker containers started!"
+	@echo ""
+	@echo "PostgreSQL: localhost:5432"
+	@echo "Redis: localhost:6379"
+	@echo ""
+	@echo "Run 'make db-upgrade' if this is first time setup"
+
+docker-down:
+	@echo "🛑 Stopping Docker containers..."
+	docker-compose down
+	@echo "✅ Docker containers stopped!"
+
+docker-status:
+	@echo "📊 Docker containers status:"
+	@docker-compose ps
+	@echo ""
+	@echo "Database info:"
+	@docker exec trackwise_postgres psql -U trackwise -d trackwise -c "SELECT 'Users in database:' as info, COUNT(*) as count FROM users;" 2>/dev/null || echo "Database not ready or tables not created"
+
+docker-db:
+	@echo "🔍 Connecting to Docker PostgreSQL..."
+	@echo "Type '\q' to exit"
+	@echo ""
+	docker exec -it trackwise_postgres psql -U trackwise -d trackwise

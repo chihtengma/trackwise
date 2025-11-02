@@ -22,7 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  final bool _agreeToTerms = false;
+  bool _agreeToTerms = false;
   bool _isLoading = false;
 
   @override
@@ -52,7 +52,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Account created successfully!'),
-              backgroundColor: Color(0xFF4CAF50),
+              backgroundColor: Color(0xFF10B981),
+              duration: Duration(seconds: 2),
             ),
           );
 
@@ -62,10 +63,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
       } catch (e) {
         if (mounted) {
           setState(() => _isLoading = false);
+
+          String errorMessage = 'Registration failed';
+
+          // Handle specific error types
+          if (e.toString().contains('ResourceAlreadyExistsError')) {
+            errorMessage =
+                'An account with this email or username already exists';
+          } else if (e.toString().contains('ValidationException')) {
+            errorMessage =
+                'Please check your input. Email or username may be invalid';
+          } else if (e.toString().contains('NetworkException')) {
+            errorMessage = 'Network error. Please check your connection';
+          } else if (e.toString().contains('TimeoutException')) {
+            errorMessage = 'Request timeout. Please try again';
+          } else if (e.toString().contains('ServerException')) {
+            errorMessage = 'Server error. Please try again later';
+          } else {
+            errorMessage =
+                'Registration failed: ${e.toString().replaceAll('Exception:', '').trim()}';
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.toString()}'),
+              content: Text(errorMessage),
               backgroundColor: const Color(0xFFE53935),
+              duration: const Duration(seconds: 4),
             ),
           );
         }
@@ -73,7 +96,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } else if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please agree to the terms'),
+          content: Text('Please agree to the terms and conditions'),
           backgroundColor: Color(0xFFFF9800),
         ),
       );
@@ -121,8 +144,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       children: [
-                        const SizedBox(height: 4),
-
                         // Back button row
                         Align(
                           alignment: Alignment.centerLeft,
@@ -151,7 +172,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
 
                         // App branding section
                         Column(
@@ -178,7 +199,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ],
                         ),
 
-                        const SizedBox(height: 36),
+                        const SizedBox(height: 30),
 
                         // Create account title
                         Text(
@@ -190,7 +211,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 18),
 
                         // Form content
                         Expanded(
@@ -266,7 +287,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ),
                                 ),
 
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 12),
 
                                 // Username field - single row
                                 Container(
@@ -334,7 +355,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ),
                                 ),
 
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 12),
 
                                 // Password field - single row
                                 Container(
@@ -418,7 +439,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ),
                                 ),
 
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 12),
 
                                 // Confirm Password field - single row
                                 Container(
@@ -502,7 +523,58 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ),
                                 ),
 
-                                const SizedBox(height: 28),
+                                const SizedBox(height: 12),
+
+                                // Terms and conditions checkbox
+                                Row(
+                                  children: [
+                                    Checkbox(
+                                      value: _agreeToTerms,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _agreeToTerms = value ?? false;
+                                        });
+                                      },
+                                      activeColor: const Color(0xFF6366F1),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _agreeToTerms = !_agreeToTerms;
+                                          });
+                                        },
+                                        child: RichText(
+                                          text: TextSpan(
+                                            style: GoogleFonts.inter(
+                                              fontSize: 13,
+                                              color: const Color(0xFF718096),
+                                            ),
+                                            children: [
+                                              const TextSpan(
+                                                  text: 'I agree to the '),
+                                              TextSpan(
+                                                text: 'Terms and Conditions',
+                                                style: GoogleFonts.inter(
+                                                  color:
+                                                      const Color(0xFF6366F1),
+                                                  fontWeight: FontWeight.w500,
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 16),
 
                                 // Sign up button with gradient
                                 Container(
@@ -559,7 +631,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ),
                                 ),
 
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 16),
 
                                 // Divider with better styling
                                 Row(
@@ -605,7 +677,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ],
                                 ),
 
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 16),
 
                                 // Google sign up button - full width
                                 Container(
