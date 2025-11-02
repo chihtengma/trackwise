@@ -36,6 +36,7 @@ class MTAClient:
     def __init__(self):
         """Initialize the MTA client."""
         self.base_url = settings.MTA_SUBWAY_GTFS_RT_BASE_URL
+        self.api_key = settings.MTA_API_KEY
         self.client = httpx.AsyncClient(timeout=30.0)
 
     async def close(self):
@@ -84,10 +85,15 @@ class MTAClient:
             >>> print(f"Feed has {len(feed.entity)} entities")
         """
 
-        url = f"{self.base_url}/{feed_id}"  # Construct full URL
+        url = f"{self.base_url}%2F{feed_id}"  # Construct full URL with %2F
+
+        # Prepare headers with API key if available
+        headers = {}
+        if self.api_key:
+            headers["x-api-key"] = self.api_key
 
         try:
-            response = await self.client.get(url)  # Fetch the feed
+            response = await self.client.get(url, headers=headers)  # Fetch the feed
             response.raise_for_status()  # Status check (404, 500, etc.)
         except httpx.HTTPError as err:
             raise ValidationError(

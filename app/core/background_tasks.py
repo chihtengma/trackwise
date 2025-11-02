@@ -25,6 +25,13 @@ async def mta_data_refresh():
     """
     try:
         logger.info("🔄 Starting MTA data refresh")
+
+        # Skip if MTA API key is not configured
+        if not settings.MTA_API_KEY:
+            logger.warning("⚠️  MTA API key not configured, skipping data refresh")
+            logger.info("💡 Get your API key from: https://api.mta.info/")
+            return
+
         client = get_mta_client()
 
         # Refresh data for popular routes

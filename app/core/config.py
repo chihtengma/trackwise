@@ -92,10 +92,13 @@ class Settings(BaseSettings):
     )
 
     # ==================== MTA Subway GTFS-Realtime Settings ====================
-    # NYC Subway - No API key required as of 2024!
+    MTA_API_KEY: Optional[str] = Field(
+        default=None,
+        description=("MTA GTFS-Realtime API key. " "Get from: https://api.mta.info/"),
+    )
     MTA_SUBWAY_GTFS_RT_BASE_URL: str = Field(
         default="https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct",
-        description="MTA Subway GTFS-Realtime base URL (no API key needed)",
+        description="MTA Subway GTFS-Realtime base URL",
     )
     MTA_SUBWAY_DEFAULT_FEED: str = Field(
         default="gtfs", description="Default subway feed ID (gtfs = all lines)"

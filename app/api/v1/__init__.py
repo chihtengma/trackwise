@@ -6,7 +6,15 @@ This module combines all v1 API endpoints and applies the /api/v1 prefix.
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, cache, scheduler, transit, users, weather
+from app.api.v1.endpoints import (
+    auth,
+    cache,
+    saved_routes,
+    scheduler,
+    transit,
+    users,
+    weather,
+)
 
 # Crate the main v1 router
 api_router = APIRouter()
@@ -27,6 +35,12 @@ api_router.include_router(
     scheduler.router,
     prefix="/scheduler",
     tags=["scheduler"],
+)
+
+api_router.include_router(
+    saved_routes.router,
+    prefix="/saved-routes",
+    tags=["saved-routes"],
 )
 
 api_router.include_router(
