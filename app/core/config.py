@@ -63,6 +63,17 @@ class Settings(BaseSettings):
         description="Redis connection URL for caching",
     )
 
+    # ==================== Scheduler Settings ====================
+    ENABLE_SCHEDULER: bool = Field(
+        default=True, description="Enable APScheduler for background tasks"
+    )
+    MTA_REFRESH_INTERVAL_SECONDS: int = Field(
+        default=60, description="Interval for MTA data refresh (seconds)"
+    )
+    CACHE_WARM_INTERVAL_MINUTES: int = Field(
+        default=5, description="Interval for cache warming (minutes)"
+    )
+
     # ==================== Security Settings ====================
     SECRET_KEY: str = Field(
         ...,  # Required! Must be set in .env

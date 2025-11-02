@@ -15,6 +15,9 @@ alembic==1.17.1
 # Cache
 redis[hiredis]==7.0.1
 
+# Scheduled Tasks
+apscheduler==3.10.4
+
 # HTTP Client
 httpx==0.28.1
 requests==2.32.5
