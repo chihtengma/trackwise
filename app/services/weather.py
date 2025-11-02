@@ -4,8 +4,7 @@ Weather service.
 Business logic for weather data operations with caching.
 """
 
-from datetime import datetime, timezone
-
+from app.core.cache import get_cache
 from app.services.weather_client import get_weather_client
 from app.schemas.weather import (
     WeatherResponse,
@@ -20,8 +19,6 @@ class WeatherService:
     Handles weather queries, data transformation, and caching.
     """
 
-    # Simple in-memory cache (replace with Redis in production)
-    _cache: dict = {}
     _cache_ttl_seconds = 300  # 5 minutes
 
     @staticmethod
@@ -42,13 +39,12 @@ class WeatherService:
             >>> weather = await WeatherService.get_current_weather("New York")
             >>> print(f"Temperature: {weather.temp_celsius}°C")
         """
-        # Check cache
-        cache_key = f"{location}:{units}"
-        if cache_key in WeatherService._cache:
-            cached_data, cached_time = WeatherService._cache[cache_key]
-            age = (datetime.now(timezone.utc) - cached_time).total_seconds()
-            if age < WeatherService._cache_ttl_seconds:
-                return cached_data
+        # Check Redis cache
+        cache_key = f"weather:{location}:{units}"
+        cache = await get_cache()
+        cached_data = await cache.get(cache_key)
+        if cached_data:
+            return WeatherCurrentResponse(**cached_data)
 
         # Fetch from API
         client = get_weather_client()
@@ -87,10 +83,11 @@ class WeatherService:
             visibility_km=round(weather_response.visibility / 1000, 1),
         )
 
-        # Cache the result
-        WeatherService._cache[cache_key] = (
-            response,
-            datetime.now(timezone.utc),
+        # Cache the result in Redis
+        await cache.set(
+            cache_key,
+            response.model_dump(),
+            expiry_seconds=WeatherService._cache_ttl_seconds,
         )
 
         return response
