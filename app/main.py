@@ -14,6 +14,8 @@ from app.core.config import settings
 from app.api.v1 import api_router as api_v1_router
 from app.core.exceptions import AppException
 from app.core.exception_handlers import app_exception_handler
+from app.services.mta_client import close_mta_client
+from app.services.weather_client import close_weather_client
 
 
 # Define lifecycle event handlers
@@ -35,6 +37,8 @@ async def lifespan(app: FastAPI):
 
     # --- Shutdown tasks ---
     print(f"👋 Shutting down {settings.APP_NAME}")
+    await close_mta_client()  # Clean up MTA client connection
+    await close_weather_client()  # Clean up weather client connection
 
 
 # Initialize the FastAPI application
@@ -45,6 +49,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 # Configure CORS
