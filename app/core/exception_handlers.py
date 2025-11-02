@@ -4,13 +4,17 @@ Global exception handlers for FastAPI.
 Converts domain exceptions to appropriate HTTP responses.
 """
 
+from typing import Union
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from app.core.exceptions import AppException
 
 
-async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
+async def app_exception_handler(
+    request: Request, exc: Union[AppException, Exception]
+) -> JSONResponse:
     """
     Generic handler for application exceptions.
 
@@ -32,11 +36,18 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
             "user_id": 123
         }
     """
+    # Handle AppException subclasses
+    if isinstance(exc, AppException):
+        return JSONResponse(
+            status_code=exc.status_code,  # Use status_code from exception class
+            content={
+                "detail": exc.message,
+                "error_type": type(exc).__name__,
+                **exc.details,  # Merge additional details
+            },
+        )
+    # Fallback for generic exceptions
     return JSONResponse(
-        status_code=exc.status_code,  # Use status_code from exception class
-        content={
-            "detail": exc.message,
-            "error_type": type(exc).__name__,
-            **exc.details,  # Merge additional details
-        },
+        status_code=500,
+        content={"detail": str(exc), "error_type": "Exception"},
     )

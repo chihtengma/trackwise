@@ -4,9 +4,10 @@ Transit service.
 Business logic for transit data operations with caching.
 """
 
-from typing import List
+from typing import List, Any
 from datetime import datetime, timezone
 
+from app.core.cache import get_cache
 from app.services.mta_client import get_mta_client
 from app.schemas.transit import (
     TripUpdate,
@@ -20,7 +21,7 @@ from app.schemas.transit import (
 try:
     from app.services.weather import WeatherService
 except ImportError:
-    WeatherService = None
+    WeatherService: Any = None  # type: ignore
 
 
 class TransitService:
@@ -29,6 +30,9 @@ class TransitService:
 
     Handles route queries, trip updates, and transit data.
     """
+
+    _trip_updates_ttl_seconds = 30  # 30 seconds for real-time data
+    _route_query_ttl_seconds = 300  # 5 minutes for route queries
 
     @staticmethod
     async def get_trip_updates_for_route(route_id: str) -> List[TripUpdate]:
@@ -45,6 +49,13 @@ class TransitService:
             >>> updates = await TransitService.get_trip_updates_for_route("A")
             >>> print(f"Found {len(updates)} active trips")
         """
+        # Check Redis cache
+        cache_key = f"transit:updates:{route_id}"
+        cache = await get_cache()
+        cached_data = await cache.get(cache_key)
+        if cached_data:
+            return [TripUpdate(**item) for item in cached_data]
+
         client = get_mta_client()
         raw_updates = await client.get_trip_updates(route_id=route_id)
 
@@ -53,7 +64,7 @@ class TransitService:
         for raw_update in raw_updates:
             # Convert stop time updates
             stop_updates = [
-                StopTimeUpdate(
+                StopTimeUpdate(  # type: ignore
                     stop_id=stu["stop_id"],
                     arrival_time=stu.get("arrival_time"),
                     departure_time=stu.get("departure_time"),
@@ -69,6 +80,13 @@ class TransitService:
                 stop_time_updates=stop_updates,
             )
             trip_updates.append(trip_update)
+
+        # Cache the result
+        await cache.set(
+            cache_key,
+            [tu.model_dump() for tu in trip_updates],
+            expiry_seconds=TransitService._trip_updates_ttl_seconds,
+        )
 
         return trip_updates
 
@@ -109,7 +127,7 @@ class TransitService:
         weather = None
         if query.include_weather and query.weather_location:
             try:
-                if WeatherService:
+                if WeatherService is not None:
                     weather = await WeatherService.get_current_weather(
                         query.weather_location
                     )

@@ -216,7 +216,9 @@ class UserService:
 
         # Update password if provided
         if "password" in update_data:
-            user.hashed_password = get_password_hash(update_data["password"])
+            user.hashed_password = get_password_hash(  # type: ignore[assignment]
+                update_data["password"]
+            )
 
         # Update other fields
         if "full_name" in update_data:
@@ -284,7 +286,7 @@ class UserService:
         user = await UserService.get_user_by_email(db, email)
 
         # If user not found or password incorrect
-        if not user or not verify_password(password, user.hashed_password):
+        if not user or not verify_password(password, str(user.hashed_password)):
             raise AuthenticationError("Incorrect email or password")
 
         # Check if user is active

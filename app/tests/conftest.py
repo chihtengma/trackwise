@@ -10,18 +10,22 @@ from httpx._transports.asgi import ASGITransport
 import time
 import os
 from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    async_sessionmaker,
+    AsyncSession,
+)
+from app.core.database import Base, get_async_db
+from app.main import app
 
 # Set test environment variables before importing app
 # Use a real PostgreSQL database URL format to avoid SQLite pool issues
 os.environ.setdefault("ENVIRONMENT", "development")
-os.environ.setdefault("DATABASE_URL", "postgresql://test:test@localhost:5432/trackwise_test")
+os.environ.setdefault(
+    "DATABASE_URL", "postgresql://test:test@localhost:5432/trackwise_test"
+)
 os.environ.setdefault("SECRET_KEY", "test-secret-key-" + "x" * 40)
 os.environ.setdefault("OPENWEATHER_API_KEY", "test-api-key")
-
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from app.core.database import Base
-from app.main import app
-from app.core.database import get_async_db
 
 
 # Test database setup using SQLite with async support
@@ -32,6 +36,7 @@ TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 def event_loop():
     """Create an event loop for pytest-asyncio."""
     import asyncio
+
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
@@ -89,6 +94,7 @@ async def test_db(test_session_factory) -> AsyncGenerator[AsyncSession, None]:
 @pytest.fixture
 def override_get_db(test_db):
     """Override the get_async_db dependency with test database."""
+
     async def _get_test_db():
         yield test_db
 

@@ -251,6 +251,7 @@ class MTAClient:
                 if (
                     route_id
                     and position_data["route_id"]
+                    and isinstance(position_data["route_id"], str)
                     and position_data["route_id"].upper() != route_id.upper()
                 ):
                     continue

@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.api.v1 import api_router as api_v1_router
 from app.core.exceptions import AppException
 from app.core.exception_handlers import app_exception_handler
+from app.core.cache import close_cache
 from app.services.mta_client import close_mta_client
 from app.services.weather_client import close_weather_client
 
@@ -37,6 +38,7 @@ async def lifespan(app: FastAPI):
 
     # --- Shutdown tasks ---
     print(f"👋 Shutting down {settings.APP_NAME}")
+    await close_cache()  # Clean up Redis cache connection
     await close_mta_client()  # Clean up MTA client connection
     await close_weather_client()  # Clean up weather client connection
 
