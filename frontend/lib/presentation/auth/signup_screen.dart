@@ -34,6 +34,115 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
+  void _showErrorDialog(String title, String message, {String? actionText, VoidCallback? onAction}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEBEE),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.error_outline,
+                  color: Color(0xFFE53935),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF2D3748),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: const Color(0xFF718096),
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            if (actionText != null && onAction != null)
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  onAction();
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF6366F1),
+                ),
+                child: Text(actionText),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF6366F1),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: Text(
+                'OK',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = true, IconData? icon}) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              icon ?? (isError ? Icons.error_outline : Icons.check_circle),
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError ? const Color(0xFFE53935) : const Color(0xFF10B981),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: Duration(seconds: isError ? 4 : 2),
+      ),
+    );
+  }
+
   Future<void> _handleSignUp() async {
     if (_formKey.currentState!.validate() && _agreeToTerms) {
       setState(() => _isLoading = true);
@@ -49,12 +158,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         if (mounted) {
           setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Account created successfully!'),
-              backgroundColor: Color(0xFF10B981),
-              duration: Duration(seconds: 2),
-            ),
+
+          // Show success message
+          _showSnackBar(
+            'Account created successfully! Welcome to TrackWise!',
+            isError: false,
+            icon: Icons.celebration,
           );
 
           // Auto-login after successful registration
@@ -64,41 +173,67 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (mounted) {
           setState(() => _isLoading = false);
 
-          String errorMessage = 'Registration failed';
+          // Parse the error message to remove technical details
+          final errorStr = e.toString().toLowerCase();
 
-          // Handle specific error types
-          if (e.toString().contains('ResourceAlreadyExistsError')) {
-            errorMessage =
-                'An account with this email or username already exists';
-          } else if (e.toString().contains('ValidationException')) {
-            errorMessage =
-                'Please check your input. Email or username may be invalid';
-          } else if (e.toString().contains('NetworkException')) {
-            errorMessage = 'Network error. Please check your connection';
-          } else if (e.toString().contains('TimeoutException')) {
-            errorMessage = 'Request timeout. Please try again';
-          } else if (e.toString().contains('ServerException')) {
-            errorMessage = 'Server error. Please try again later';
+          // Handle specific error types with user-friendly messages
+          if (errorStr.contains('resourcealreadyexists') ||
+              errorStr.contains('already exists') ||
+              errorStr.contains('409')) {
+            _showErrorDialog(
+              'Account Already Exists',
+              'An account with this email or username is already registered. Please use a different email or username.',
+              actionText: 'Go to Login',
+              onAction: () {
+                Navigator.pushReplacementNamed(context, '/login');
+              },
+            );
+          } else if (errorStr.contains('validationexception') ||
+                     errorStr.contains('422') ||
+                     errorStr.contains('validation')) {
+            _showErrorDialog(
+              'Invalid Information',
+              'Please check that all fields are filled correctly:\n\n'
+              '• Email must be valid\n'
+              '• Username must be at least 3 characters\n'
+              '• Password must be at least 8 characters',
+            );
+          } else if (errorStr.contains('networkexception') ||
+                     errorStr.contains('socketexception') ||
+                     errorStr.contains('connection')) {
+            _showErrorDialog(
+              'Connection Problem',
+              'Unable to connect to TrackWise servers. Please check your internet connection and try again.',
+              actionText: 'Retry',
+              onAction: _handleSignUp,
+            );
+          } else if (errorStr.contains('timeoutexception') ||
+                     errorStr.contains('timeout')) {
+            _showSnackBar(
+              'Connection timed out. Please check your internet and try again.',
+              icon: Icons.wifi_off,
+            );
+          } else if (errorStr.contains('serverexception') ||
+                     errorStr.contains('500') ||
+                     errorStr.contains('internal server')) {
+            _showErrorDialog(
+              'Server Issue',
+              'We\'re experiencing technical difficulties. Our team has been notified. Please try again in a few moments.',
+            );
           } else {
-            errorMessage =
-                'Registration failed: ${e.toString().replaceAll('Exception:', '').trim()}';
+            // For any other errors, show a generic but friendly message
+            // Don't show raw error messages to users
+            _showSnackBar(
+              'Something went wrong during registration. Please try again.',
+              icon: Icons.warning_amber_outlined,
+            );
           }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: const Color(0xFFE53935),
-              duration: const Duration(seconds: 4),
-            ),
-          );
         }
       }
     } else if (!_agreeToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please agree to the terms and conditions'),
-          backgroundColor: Color(0xFFFF9800),
-        ),
+      _showSnackBar(
+        'Please agree to the terms and conditions to continue',
+        icon: Icons.info_outline,
       );
     }
   }

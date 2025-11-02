@@ -28,6 +28,115 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _showErrorDialog(String title, String message, {String? actionText, VoidCallback? onAction}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEBEE),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.error_outline,
+                  color: Color(0xFFE53935),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF2D3748),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: const Color(0xFF718096),
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            if (actionText != null && onAction != null)
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  onAction();
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF6366F1),
+                ),
+                child: Text(actionText),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF6366F1),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: Text(
+                'OK',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = true, IconData? icon}) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              icon ?? (isError ? Icons.error_outline : Icons.check_circle),
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError ? const Color(0xFFE53935) : const Color(0xFF10B981),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: Duration(seconds: isError ? 4 : 2),
+      ),
+    );
+  }
+
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -44,54 +153,68 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (success) {
             // Show success message
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Login successful!'),
-                backgroundColor: Color(0xFF10B981),
-                duration: Duration(seconds: 2),
-              ),
-            );
+            _showSnackBar('Login successful!', isError: false);
+
+            // Small delay for user to see success message
+            await Future.delayed(const Duration(milliseconds: 800));
 
             // Navigate to home screen
             Navigator.of(context)
                 .pushNamedAndRemoveUntil('/home', (route) => false);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Login failed. Please try again.'),
-                backgroundColor: Color(0xFFE53935),
-              ),
-            );
           }
         }
       } catch (e) {
         if (mounted) {
           setState(() => _isLoading = false);
 
-          String errorMessage = 'An error occurred';
+          // Parse the error message to remove technical details
+          final errorStr = e.toString().toLowerCase();
 
-          // Handle specific error types
-          if (e.toString().contains('UnauthorizedException')) {
-            errorMessage = 'Invalid email or password';
-          } else if (e.toString().contains('NetworkException')) {
-            errorMessage = 'Network error. Please check your connection';
-          } else if (e.toString().contains('TimeoutException')) {
-            errorMessage = 'Request timeout. Please try again';
-          } else if (e.toString().contains('ServerException')) {
-            errorMessage = 'Server error. Please try again later';
-          } else if (e.toString().contains('InactiveUserError')) {
-            errorMessage = 'Your account is inactive. Please contact support';
+          // Handle specific error types with user-friendly messages
+          if (errorStr.contains('unauthorizedexception') ||
+              errorStr.contains('401') ||
+              errorStr.contains('unauthorized')) {
+            _showErrorDialog(
+              'Invalid Credentials',
+              'The email or password you entered is incorrect. Please double-check your credentials and try again.',
+              actionText: 'Forgot Password?',
+              onAction: () {
+                _showSnackBar('Password reset coming soon!', isError: false, icon: Icons.info_outline);
+              },
+            );
+          } else if (errorStr.contains('networkexception') ||
+                     errorStr.contains('socketexception') ||
+                     errorStr.contains('connection')) {
+            _showErrorDialog(
+              'Connection Problem',
+              'Unable to connect to TrackWise servers. Please check your internet connection and try again.',
+              actionText: 'Retry',
+              onAction: _handleLogin,
+            );
+          } else if (errorStr.contains('timeoutexception') ||
+                     errorStr.contains('timeout')) {
+            _showSnackBar(
+              'Connection timed out. Please check your internet and try again.',
+              icon: Icons.wifi_off,
+            );
+          } else if (errorStr.contains('serverexception') ||
+                     errorStr.contains('500') ||
+                     errorStr.contains('internal server')) {
+            _showErrorDialog(
+              'Server Issue',
+              'We\'re experiencing technical difficulties. Our team has been notified. Please try again in a few moments.',
+            );
+          } else if (errorStr.contains('validationexception') ||
+                     errorStr.contains('422') ||
+                     errorStr.contains('validation')) {
+            _showSnackBar('Please check your email and password format.');
           } else {
-            errorMessage = 'Login failed: ${e.toString().replaceAll('Exception:', '').trim()}';
+            // For any other errors, show a generic but friendly message
+            _showSnackBar(
+              'Something went wrong. Please try again.',
+              icon: Icons.warning_amber_outlined,
+            );
           }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: const Color(0xFFE53935),
-              duration: const Duration(seconds: 4),
-            ),
-          );
         }
       }
     }
@@ -143,7 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 60),
 
-                        // Welcome back section
+                        // Sign in subtitle
                         Column(
                           children: [
                             const SizedBox(height: 8),
@@ -324,14 +447,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   alignment: Alignment.centerRight,
                                   child: TextButton(
                                     onPressed: () {
-                                      // TODO: Implement forgot password
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Password reset coming soon!'),
-                                          backgroundColor: Color(0xFF6366F1),
-                                        ),
+                                      _showSnackBar(
+                                        'Password reset coming soon!',
+                                        isError: false,
+                                        icon: Icons.info_outline,
                                       );
                                     },
                                     child: Text(
@@ -470,13 +589,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   child: OutlinedButton.icon(
                                     onPressed: () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Google sign in coming soon!'),
-                                          backgroundColor: Color(0xFF4285F4),
-                                        ),
+                                      _showSnackBar(
+                                        'Google sign in coming soon!',
+                                        isError: false,
+                                        icon: Icons.info_outline,
                                       );
                                     },
                                     icon: const GoogleLogo(size: 18),
@@ -517,13 +633,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   child: OutlinedButton.icon(
                                     onPressed: () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Apple sign in coming soon!'),
-                                          backgroundColor: Colors.black,
-                                        ),
+                                      _showSnackBar(
+                                        'Apple sign in coming soon!',
+                                        isError: false,
+                                        icon: Icons.info_outline,
                                       );
                                     },
                                     icon: const Icon(
