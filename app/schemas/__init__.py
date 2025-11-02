@@ -14,6 +14,14 @@ from app.schemas.user import (
     Token,
     TokenData,
 )
+from app.schemas.saved_route import (
+    SavedRouteBase,
+    SavedRouteCreate,
+    SavedRouteUpdate,
+    SavedRouteResponse,
+    SavedRouteListResponse,
+    UserPreferences,
+)
 
 __all__ = [
     "UserBase",
@@ -23,4 +31,10 @@ __all__ = [
     "UserResponse",
     "Token",
     "TokenData",
+    "SavedRouteBase",
+    "SavedRouteCreate",
+    "SavedRouteUpdate",
+    "SavedRouteResponse",
+    "SavedRouteListResponse",
+    "UserPreferences",
 ]
