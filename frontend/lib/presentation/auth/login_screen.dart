@@ -112,16 +112,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
 
-                        const SizedBox(height: 80),
+                        const SizedBox(height: 60),
 
                         // Welcome back section
                         Column(
                           children: [
+                            const SizedBox(height: 8),
                             Text(
                               'Sign in to continue',
                               style: GoogleFonts.inter(
                                 fontSize: 15,
-                                color: const Color(0xFF2D3748),
+                                color: const Color(0xFF718096),
                               ),
                             ),
                           ],
@@ -203,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
 
-                                const SizedBox(height: 18),
+                                const SizedBox(height: 16),
 
                                 // Password field with icon
                                 Container(
@@ -287,6 +288,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
 
+                                const SizedBox(height: 12),
+
                                 // Forgot password
                                 Align(
                                   alignment: Alignment.centerRight,
@@ -313,7 +316,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
 
-                                const SizedBox(height: 36),
+                                const SizedBox(height: 24),
 
                                 // Login button with gradient
                                 Container(
