@@ -5,6 +5,7 @@ import 'presentation/themes/app_theme.dart';
 import 'presentation/auth/login_screen.dart';
 import 'presentation/auth/signup_screen.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/onboarding/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +25,11 @@ class TrackWiseApp extends StatelessWidget {
       title: 'TrackWise',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      initialRoute: '/onboarding',
       routes: {
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignUpScreen(),
         '/': (context) => const HomePage(),
         '/home': (context) => const HomeScreen(),
       },
