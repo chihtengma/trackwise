@@ -52,8 +52,8 @@ class Settings(BaseSettings):
     DATABASE_ECHO: bool = Field(
         default=False,
         description=(
-            "Enable SQLAlchemy query logging (useful for debugging)",
-            "Set to True for development, False for production",
+            "Enable SQLAlchemy query logging. "
+            "True for development, False for production"
         ),
     )
 
@@ -108,8 +108,7 @@ class Settings(BaseSettings):
         ...,  # Required!
         description=(
             "OpenWeatherMap API key. "
-            "Get from: https://openweathermap.org/api"
-            "REQUIRED in .env!",
+            "Get from: https://openweathermap.org/api REQUIRED in .env!"
         ),
     )
     OPENWEATHER_BASE_URL: str = Field(
@@ -243,7 +242,7 @@ def get_settings() -> Settings:
         ValidationError: If required variables are missing or invalid.
     """
     try:
-        return Settings()
+        return Settings()  # type: ignore[call-arg]
     except ValidationError as err:
         print("\n❌ Configuration Error!")
         print("=" * 50)

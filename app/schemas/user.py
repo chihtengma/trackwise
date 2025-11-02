@@ -146,8 +146,10 @@ class UserUpdate(UserBase):
         >>> update_data = UserUpdate(full_name="Jane Doe")
     """
 
-    email: Optional[EmailStr] = Field(None, description="New email address")
-    username: Optional[str] = Field(
+    email: Optional[EmailStr] = Field(  # type: ignore[assignment]
+        None, description="New email address"
+    )
+    username: Optional[str] = Field(  # type: ignore[assignment]
         None, min_length=3, max_length=50, description="New username"
     )
     full_name: Optional[str] = Field(

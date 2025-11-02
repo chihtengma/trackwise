@@ -4,7 +4,7 @@ Transit service.
 Business logic for transit data operations with caching.
 """
 
-from typing import List
+from typing import List, Any
 from datetime import datetime, timezone
 
 from app.core.cache import get_cache
@@ -21,7 +21,7 @@ from app.schemas.transit import (
 try:
     from app.services.weather import WeatherService
 except ImportError:
-    WeatherService = None
+    WeatherService: Any = None  # type: ignore
 
 
 class TransitService:
@@ -64,7 +64,7 @@ class TransitService:
         for raw_update in raw_updates:
             # Convert stop time updates
             stop_updates = [
-                StopTimeUpdate(
+                StopTimeUpdate(  # type: ignore
                     stop_id=stu["stop_id"],
                     arrival_time=stu.get("arrival_time"),
                     departure_time=stu.get("departure_time"),
@@ -127,7 +127,7 @@ class TransitService:
         weather = None
         if query.include_weather and query.weather_location:
             try:
-                if WeatherService:
+                if WeatherService is not None:
                     weather = await WeatherService.get_current_weather(
                         query.weather_location
                     )

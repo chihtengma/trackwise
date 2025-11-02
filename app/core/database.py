@@ -5,7 +5,7 @@ This module provides the SQLAlchemy engine, session factory,
 and base class for all database models.
 """
 
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import (
@@ -66,7 +66,7 @@ Base = declarative_base()  # Create base class for all models
 # ==================== Database Dependencies ====================
 
 
-def get_sync_db() -> Session:
+def get_sync_db() -> Generator[Session, None, None]:
     """
     Dependency for synchronous database sessions.
 

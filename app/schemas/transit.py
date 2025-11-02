@@ -5,7 +5,7 @@ Pydantic models for MTA GTFS-Realtime data structures.
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -14,8 +14,7 @@ from pydantic import BaseModel, Field
 try:
     from app.schemas.weather import WeatherCurrentResponse
 except ImportError:
-    # Handle circular import if it occurs
-    WeatherCurrentResponse = None
+    WeatherCurrentResponse: Any = BaseModel  # type: ignore
 
 
 class RouteType(Enum):
