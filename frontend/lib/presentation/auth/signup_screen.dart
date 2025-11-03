@@ -34,7 +34,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  void _showErrorDialog(String title, String message, {String? actionText, VoidCallback? onAction}) {
+  void _showErrorDialog(String title, String message,
+      {String? actionText, VoidCallback? onAction}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -94,7 +95,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFF6366F1),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
               child: Text(
                 'OK',
@@ -132,7 +134,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           ],
         ),
-        backgroundColor: isError ? const Color(0xFFE53935) : const Color(0xFF10B981),
+        backgroundColor:
+            isError ? const Color(0xFFE53935) : const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -189,18 +192,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
               },
             );
           } else if (errorStr.contains('validationexception') ||
-                     errorStr.contains('422') ||
-                     errorStr.contains('validation')) {
+              errorStr.contains('422') ||
+              errorStr.contains('validation')) {
             _showErrorDialog(
               'Invalid Information',
               'Please check that all fields are filled correctly:\n\n'
-              '• Email must be valid\n'
-              '• Username must be at least 3 characters\n'
-              '• Password must be at least 8 characters',
+                  '• Email must be valid\n'
+                  '• Username must be at least 3 characters\n'
+                  '• Password must be at least 8 characters',
             );
           } else if (errorStr.contains('networkexception') ||
-                     errorStr.contains('socketexception') ||
-                     errorStr.contains('connection')) {
+              errorStr.contains('socketexception') ||
+              errorStr.contains('connection')) {
             _showErrorDialog(
               'Connection Problem',
               'Unable to connect to TrackWise servers. Please check your internet connection and try again.',
@@ -208,14 +211,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
               onAction: _handleSignUp,
             );
           } else if (errorStr.contains('timeoutexception') ||
-                     errorStr.contains('timeout')) {
+              errorStr.contains('timeout')) {
             _showSnackBar(
               'Connection timed out. Please check your internet and try again.',
               icon: Icons.wifi_off,
             );
           } else if (errorStr.contains('serverexception') ||
-                     errorStr.contains('500') ||
-                     errorStr.contains('internal server')) {
+              errorStr.contains('500') ||
+              errorStr.contains('internal server')) {
             _showErrorDialog(
               'Server Issue',
               'We\'re experiencing technical difficulties. Our team has been notified. Please try again in a few moments.',
@@ -312,13 +315,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         // App branding section
                         Column(
                           children: [
-                            Text(
-                              'TrackWise',
-                              style: GoogleFonts.poppins(
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF2D3748),
-                                letterSpacing: -0.5,
+                            ShaderMask(
+                              shaderCallback: (bounds) => const LinearGradient(
+                                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                              ).createShader(bounds),
+                              child: Text(
+                                'TrackWise',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 4),

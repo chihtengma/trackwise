@@ -28,7 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _showErrorDialog(String title, String message, {String? actionText, VoidCallback? onAction}) {
+  void _showErrorDialog(String title, String message,
+      {String? actionText, VoidCallback? onAction}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -88,7 +89,8 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFF6366F1),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
               child: Text(
                 'OK',
@@ -126,7 +128,8 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
         ),
-        backgroundColor: isError ? const Color(0xFFE53935) : const Color(0xFF10B981),
+        backgroundColor:
+            isError ? const Color(0xFFE53935) : const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -159,8 +162,10 @@ class _LoginScreenState extends State<LoginScreen> {
             await Future.delayed(const Duration(milliseconds: 800));
 
             // Navigate to home screen
-            Navigator.of(context)
-                .pushNamedAndRemoveUntil('/home', (route) => false);
+            if (mounted) {
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil('/home', (route) => false);
+            }
           }
         }
       } catch (e) {
@@ -179,12 +184,13 @@ class _LoginScreenState extends State<LoginScreen> {
               'The email or password you entered is incorrect. Please double-check your credentials and try again.',
               actionText: 'Forgot Password?',
               onAction: () {
-                _showSnackBar('Password reset coming soon!', isError: false, icon: Icons.info_outline);
+                _showSnackBar('Password reset coming soon!',
+                    isError: false, icon: Icons.info_outline);
               },
             );
           } else if (errorStr.contains('networkexception') ||
-                     errorStr.contains('socketexception') ||
-                     errorStr.contains('connection')) {
+              errorStr.contains('socketexception') ||
+              errorStr.contains('connection')) {
             _showErrorDialog(
               'Connection Problem',
               'Unable to connect to TrackWise servers. Please check your internet connection and try again.',
@@ -192,21 +198,21 @@ class _LoginScreenState extends State<LoginScreen> {
               onAction: _handleLogin,
             );
           } else if (errorStr.contains('timeoutexception') ||
-                     errorStr.contains('timeout')) {
+              errorStr.contains('timeout')) {
             _showSnackBar(
               'Connection timed out. Please check your internet and try again.',
               icon: Icons.wifi_off,
             );
           } else if (errorStr.contains('serverexception') ||
-                     errorStr.contains('500') ||
-                     errorStr.contains('internal server')) {
+              errorStr.contains('500') ||
+              errorStr.contains('internal server')) {
             _showErrorDialog(
               'Server Issue',
               'We\'re experiencing technical difficulties. Our team has been notified. Please try again in a few moments.',
             );
           } else if (errorStr.contains('validationexception') ||
-                     errorStr.contains('422') ||
-                     errorStr.contains('validation')) {
+              errorStr.contains('422') ||
+              errorStr.contains('validation')) {
             _showSnackBar('Please check your email and password format.');
           } else {
             // For any other errors, show a generic but friendly message
@@ -242,13 +248,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         // App branding section - matching signup screen
                         Column(
                           children: [
-                            Text(
-                              'TrackWise',
-                              style: GoogleFonts.poppins(
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF2D3748),
-                                letterSpacing: -0.5,
+                            ShaderMask(
+                              shaderCallback: (bounds) => const LinearGradient(
+                                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                              ).createShader(bounds),
+                              child: Text(
+                                'TrackWise',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -481,7 +492,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     boxShadow: [
                                       BoxShadow(
                                         color: const Color(0xFF6366F1)
-                                            .withOpacity(0.3),
+                                            .withValues(alpha: 0.3),
                                         blurRadius: 20,
                                         offset: const Offset(0, 10),
                                       ),
