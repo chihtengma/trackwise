@@ -112,4 +112,44 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<String?> getAccessToken() async {
     return await localDataSource.getAccessToken();
   }
+
+  @override
+  Future<UserModel> getCurrentUser() async {
+    try {
+      return await remoteDataSource.getCurrentUser();
+    } catch (e) {
+      if (e is ApiException) {
+        rethrow;
+      }
+      throw UnknownException(message: 'Failed to get user profile: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<UserModel> updateUser({
+    required int userId,
+    String? email,
+    String? username,
+    String? fullName,
+    String? password,
+    String? profilePicture,
+    bool? isActive,
+  }) async {
+    try {
+      return await remoteDataSource.updateUser(
+        userId: userId,
+        email: email,
+        username: username,
+        fullName: fullName,
+        password: password,
+        profilePicture: profilePicture,
+        isActive: isActive,
+      );
+    } catch (e) {
+      if (e is ApiException) {
+        rethrow;
+      }
+      throw UnknownException(message: 'Failed to update user profile: ${e.toString()}');
+    }
+  }
 }

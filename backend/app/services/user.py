@@ -191,8 +191,8 @@ class UserService:
         if not user:
             raise ResourceNotFoundError("User not found", {"user_id": user_id})
 
-        # Update fields if provided
-        update_data = user_data.model_dump(exclude_unset=True)
+        # Update fields if provided (exclude None values and unset fields)
+        update_data = user_data.model_dump(exclude_unset=True, exclude_none=True)
 
         # Check email uniqueness if being updated
         if "email" in update_data and update_data["email"] != user.email:
@@ -214,11 +214,15 @@ class UserService:
                 )
             user.username = update_data["username"]
 
-        # Update password if provided
-        if "password" in update_data:
+        # Update password if provided (and not None)
+        if "password" in update_data and update_data["password"] is not None:
             user.hashed_password = get_password_hash(  # type: ignore[assignment]
                 update_data["password"]
             )
+
+        # Update profile picture if provided (allow None to clear it)
+        if "profile_picture" in user_data.model_dump(exclude_unset=True):
+            user.profile_picture = user_data.profile_picture
 
         # Update other fields
         if "full_name" in update_data:

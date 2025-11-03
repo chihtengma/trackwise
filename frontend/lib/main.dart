@@ -5,6 +5,7 @@ import 'presentation/themes/app_theme.dart';
 import 'presentation/auth/login_screen.dart';
 import 'presentation/auth/signup_screen.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/main_navigation_screen.dart';
 import 'presentation/onboarding/onboarding_screen.dart';
 import 'presentation/splash/splash_screen.dart';
 
@@ -33,7 +34,7 @@ class TrackWiseApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/': (context) => const HomePage(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => const MainNavigationScreen(),
       },
     );
   }

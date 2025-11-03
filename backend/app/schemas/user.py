@@ -60,6 +60,10 @@ class UserBase(BaseModel):
         """
         import re
 
+        # Skip validation if value is None (for optional fields in updates)
+        if val is None:
+            return val
+
         # Regex pattern: at least one letter, only alphanumeric or underscores
         if not re.match(r"^(?=.*[A-Za-z])\w+$", val):
             raise ValueError(
@@ -157,6 +161,9 @@ class UserUpdate(UserBase):
     )
     password: Optional[str] = Field(
         None, min_length=8, max_length=100, description="New password"
+    )
+    profile_picture: Optional[str] = Field(
+        None, description="Profile picture URL or base64 data URI"
     )
     is_active: Optional[bool] = Field(None, description="Account active status")
 

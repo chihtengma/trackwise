@@ -33,4 +33,18 @@ abstract class AuthRepository {
 
   /// Get current access token
   Future<String?> getAccessToken();
+
+  /// Get current user profile
+  Future<UserModel> getCurrentUser();
+
+  /// Update user profile
+  Future<UserModel> updateUser({
+    required int userId,
+    String? email,
+    String? username,
+    String? fullName,
+    String? password,
+    String? profilePicture,
+    bool? isActive,
+  });
 }

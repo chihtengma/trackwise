@@ -11,6 +11,7 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
       email: json['email'] as String,
       username: json['username'] as String,
       fullName: json['full_name'] as String?,
+      profilePicture: json['profile_picture'] as String?,
       isActive: json['is_active'] as bool,
       isSuperuser: json['is_superuser'] as bool,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -22,6 +23,7 @@ Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
       'email': instance.email,
       'username': instance.username,
       'full_name': instance.fullName,
+      'profile_picture': instance.profilePicture,
       'is_active': instance.isActive,
       'is_superuser': instance.isSuperuser,
       'created_at': instance.createdAt.toIso8601String(),
@@ -48,6 +50,7 @@ UserUpdate _$UserUpdateFromJson(Map<String, dynamic> json) => UserUpdate(
       username: json['username'] as String?,
       fullName: json['full_name'] as String?,
       password: json['password'] as String?,
+      profilePicture: json['profile_picture'] as String?,
       isActive: json['is_active'] as bool?,
     );
 
@@ -57,6 +60,7 @@ Map<String, dynamic> _$UserUpdateToJson(UserUpdate instance) =>
       'username': instance.username,
       'full_name': instance.fullName,
       'password': instance.password,
+      'profile_picture': instance.profilePicture,
       'is_active': instance.isActive,
     };
 

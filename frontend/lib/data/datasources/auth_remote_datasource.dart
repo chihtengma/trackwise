@@ -100,6 +100,54 @@ class AuthRemoteDataSource {
     }
   }
 
+  /// Get current user profile
+  Future<UserModel> getCurrentUser() async {
+    try {
+      final response = await dio.get('${config.apiBaseUrl}/users/me');
+
+      if (response.statusCode == 200) {
+        return UserModel.fromJson(response.data);
+      } else {
+        throw UnknownException(message: 'Failed to get user profile');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Update user profile
+  Future<UserModel> updateUser({
+    required int userId,
+    String? email,
+    String? username,
+    String? fullName,
+    String? password,
+    String? profilePicture,
+    bool? isActive,
+  }) async {
+    try {
+      final response = await dio.patch(
+        '${config.apiBaseUrl}/users/$userId',
+        data: UserUpdate(
+          email: email,
+          username: username,
+          fullName: fullName,
+          password: password,
+          profilePicture: profilePicture,
+          isActive: isActive,
+        ).toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        return UserModel.fromJson(response.data);
+      } else {
+        throw UnknownException(message: 'Failed to update user profile');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
   /// Handle Dio errors and convert to custom exceptions
   ApiException _handleDioError(DioException error) {
     if (error.type == DioExceptionType.connectionTimeout ||

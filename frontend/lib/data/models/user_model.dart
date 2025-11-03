@@ -9,6 +9,8 @@ class UserModel {
   final String username;
   @JsonKey(name: 'full_name')
   final String? fullName;
+  @JsonKey(name: 'profile_picture')
+  final String? profilePicture;
   @JsonKey(name: 'is_active')
   final bool isActive;
   @JsonKey(name: 'is_superuser')
@@ -23,6 +25,7 @@ class UserModel {
     required this.email,
     required this.username,
     this.fullName,
+    this.profilePicture,
     required this.isActive,
     required this.isSuperuser,
     required this.createdAt,
@@ -39,6 +42,7 @@ class UserModel {
     String? email,
     String? username,
     String? fullName,
+    String? profilePicture,
     bool? isActive,
     bool? isSuperuser,
     DateTime? createdAt,
@@ -49,6 +53,7 @@ class UserModel {
       email: email ?? this.email,
       username: username ?? this.username,
       fullName: fullName ?? this.fullName,
+      profilePicture: profilePicture ?? this.profilePicture,
       isActive: isActive ?? this.isActive,
       isSuperuser: isSuperuser ?? this.isSuperuser,
       createdAt: createdAt ?? this.createdAt,
@@ -85,6 +90,8 @@ class UserUpdate {
   @JsonKey(name: 'full_name')
   final String? fullName;
   final String? password;
+  @JsonKey(name: 'profile_picture')
+  final String? profilePicture;
   @JsonKey(name: 'is_active')
   final bool? isActive;
 
@@ -93,6 +100,7 @@ class UserUpdate {
     this.username,
     this.fullName,
     this.password,
+    this.profilePicture,
     this.isActive,
   });
 
