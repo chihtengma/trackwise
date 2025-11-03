@@ -187,6 +187,9 @@ class UserResponse(UserBase):
     id: int = Field(..., description="Unique user identifier")
     is_active: bool = Field(..., description="Account active status")
     is_superuser: bool = Field(..., description="Admin privileges status")
+    email_verified: bool = Field(False, description="Email verification status")
+    auth_provider: Optional[str] = Field(None, description="Authentication provider (email, google, apple)")
+    profile_picture: Optional[str] = Field(None, description="Profile picture URL")
     created_at: datetime = Field(..., description="Timestamp when the user was created")
     updated_at: datetime = Field(
         ..., description="Timestamp when the user was last updated"
@@ -264,3 +267,78 @@ class TokenData(BaseModel):
     """
 
     username: Optional[str] = Field(None, description="Username from token")
+
+
+# ==================== Social Authentication Schemas ====================
+
+
+class SocialLoginRequest(BaseModel):
+    """
+    Schema for social login request.
+
+    Used for Google and Apple Sign-In authentication.
+    """
+
+    provider: str = Field(
+        ...,
+        description="OAuth provider (google or apple)",
+        pattern="^(google|apple)$"
+    )
+    id_token: str = Field(
+        ...,
+        description="ID token from the OAuth provider"
+    )
+    access_token: Optional[str] = Field(
+        None,
+        description="Access token (for Google)"
+    )
+    authorization_code: Optional[str] = Field(
+        None,
+        description="Authorization code (for Apple)"
+    )
+    nonce: Optional[str] = Field(
+        None,
+        description="Nonce for verification (for Apple)"
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "provider": "google",
+                "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "access_token": "ya29.a0AfH6SMBx...",
+            }
+        }
+    }
+
+
+class SocialAuthResponse(Token):
+    """
+    Schema for social authentication response.
+
+    Extends Token to include user information.
+    """
+
+    user: UserResponse = Field(..., description="Authenticated user information")
+    is_new_user: bool = Field(False, description="Whether this is a newly created account")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "token_type": "bearer",
+                "user": {
+                    "id": 1,
+                    "email": "john@example.com",
+                    "username": "john_doe",
+                    "full_name": "John Doe",
+                    "profile_picture": "https://example.com/photo.jpg",
+                    "email_verified": True,
+                    "auth_provider": "google",
+                    "is_active": True,
+                    "is_superuser": False,
+                },
+                "is_new_user": False,
+            }
+        }
+    }

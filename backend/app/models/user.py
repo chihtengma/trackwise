@@ -64,7 +64,39 @@ class User(Base):
         comment="User's username (unique, used for display)",
     )
     hashed_password = Column(
-        String(255), nullable=False, comment="Argon2 hashed password"
+        String(255), nullable=True, comment="Argon2 hashed password (nullable for social auth)"
+    )
+
+    # Social Authentication Fields
+    google_id = Column(
+        String(255),
+        unique=True,
+        nullable=True,
+        index=True,
+        comment="Google OAuth unique identifier"
+    )
+    apple_id = Column(
+        String(255),
+        unique=True,
+        nullable=True,
+        index=True,
+        comment="Apple OAuth unique identifier"
+    )
+    auth_provider = Column(
+        String(50),
+        nullable=True,
+        comment="Authentication provider (email, google, apple)"
+    )
+    email_verified = Column(
+        Boolean,
+        default=False,
+        nullable=False,
+        comment="Whether the email has been verified"
+    )
+    profile_picture = Column(
+        Text,
+        nullable=True,
+        comment="URL to user's profile picture from social provider"
     )
 
     # Personal Information

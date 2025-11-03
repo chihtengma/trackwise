@@ -70,6 +70,36 @@ class AuthRemoteDataSource {
     }
   }
 
+  /// Login with social provider (Google/Apple)
+  Future<TokenResponse> socialLogin({
+    required String provider,
+    required String idToken,
+    String? accessToken,
+    String? authorizationCode,
+    String? nonce,
+  }) async {
+    try {
+      final response = await dio.post(
+        config.socialLoginEndpoint,
+        data: {
+          'provider': provider,
+          'id_token': idToken,
+          if (accessToken != null) 'access_token': accessToken,
+          if (authorizationCode != null) 'authorization_code': authorizationCode,
+          if (nonce != null) 'nonce': nonce,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return TokenResponse.fromJson(response.data);
+      } else {
+        throw UnknownException(message: 'Social login failed');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
   /// Handle Dio errors and convert to custom exceptions
   ApiException _handleDioError(DioException error) {
     if (error.type == DioExceptionType.connectionTimeout ||

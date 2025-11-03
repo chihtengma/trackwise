@@ -13,8 +13,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import get_async_db
 from app.core.security import create_access_token
-from app.schemas.user import UserCreate, UserResponse, Token
+from app.schemas.user import UserCreate, UserResponse, Token, SocialLoginRequest, SocialAuthResponse
 from app.services.user import UserService
+from app.services.social_auth import SocialAuthService
+from app.core.exceptions import AuthenticationError
 
 
 router = APIRouter()
@@ -98,3 +100,130 @@ async def login(
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/social/login", response_model=SocialAuthResponse)
+async def social_login(
+    social_data: SocialLoginRequest,
+    db: AsyncSession = Depends(get_async_db),
+):
+    """
+    Authenticate via social provider (Google or Apple).
+
+    Verifies the token with the provider and creates/updates user account.
+
+    Args:
+        social_data: Social login data including provider and tokens
+        db: Database session
+
+    Returns:
+        Access token and user information
+
+    Raises:
+        AuthenticationError: If token verification fails (401)
+
+    Example Request:
+        POST /api/v1/auth/social/login
+        {
+            "provider": "google",
+            "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "access_token": "ya29.a0AfH6SMBx..."
+        }
+    """
+    # Authenticate with social provider
+    result = await SocialAuthService.authenticate_social_user(
+        db,
+        provider=social_data.provider,
+        token=social_data.id_token,
+        authorization_code=social_data.authorization_code,
+        nonce=social_data.nonce,
+    )
+
+    if not result:
+        raise AuthenticationError("Invalid social authentication token")
+
+    # Check if this is a new user
+    is_new_user = result.get("user", {}).get("created_at") == result.get("user", {}).get("updated_at")
+
+    return {
+        "access_token": result["access_token"],
+        "token_type": result["token_type"],
+        "user": result["user"],
+        "is_new_user": is_new_user,
+    }
+
+
+@router.post("/social/google", response_model=SocialAuthResponse)
+async def google_login(
+    id_token: str,
+    access_token: str = None,
+    db: AsyncSession = Depends(get_async_db),
+):
+    """
+    Authenticate via Google Sign-In.
+
+    Simplified endpoint specifically for Google authentication.
+
+    Args:
+        id_token: Google ID token
+        access_token: Google access token (optional)
+        db: Database session
+
+    Returns:
+        Access token and user information
+
+    Example Request:
+        POST /api/v1/auth/social/google
+        {
+            "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "access_token": "ya29.a0AfH6SMBx..."
+        }
+    """
+    return await social_login(
+        SocialLoginRequest(
+            provider="google",
+            id_token=id_token,
+            access_token=access_token,
+        ),
+        db,
+    )
+
+
+@router.post("/social/apple", response_model=SocialAuthResponse)
+async def apple_login(
+    id_token: str,
+    authorization_code: str = None,
+    nonce: str = None,
+    db: AsyncSession = Depends(get_async_db),
+):
+    """
+    Authenticate via Apple Sign-In.
+
+    Simplified endpoint specifically for Apple authentication.
+
+    Args:
+        id_token: Apple ID token
+        authorization_code: Apple authorization code (optional)
+        nonce: Nonce for verification (optional)
+        db: Database session
+
+    Returns:
+        Access token and user information
+
+    Example Request:
+        POST /api/v1/auth/social/apple
+        {
+            "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "authorization_code": "c1234...",
+            "nonce": "random_nonce_string"
+        }
+    """
+    return await social_login(
+        SocialLoginRequest(
+            provider="apple",
+            id_token=id_token,
+            authorization_code=authorization_code,
+            nonce=nonce,
+        ),
+        db,
+    )

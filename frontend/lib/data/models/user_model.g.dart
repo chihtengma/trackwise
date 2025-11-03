@@ -64,10 +64,16 @@ TokenResponse _$TokenResponseFromJson(Map<String, dynamic> json) =>
     TokenResponse(
       accessToken: json['access_token'] as String,
       tokenType: json['token_type'] as String? ?? 'bearer',
+      user: json['user'] == null
+          ? null
+          : UserModel.fromJson(json['user'] as Map<String, dynamic>),
+      isNewUser: json['is_new_user'] as bool?,
     );
 
 Map<String, dynamic> _$TokenResponseToJson(TokenResponse instance) =>
     <String, dynamic>{
       'access_token': instance.accessToken,
       'token_type': instance.tokenType,
+      'user': instance.user,
+      'is_new_user': instance.isNewUser,
     };

@@ -108,10 +108,15 @@ class TokenResponse {
   final String accessToken;
   @JsonKey(name: 'token_type')
   final String tokenType;
+  final UserModel? user;
+  @JsonKey(name: 'is_new_user')
+  final bool? isNewUser;
 
   TokenResponse({
     required this.accessToken,
     this.tokenType = 'bearer',
+    this.user,
+    this.isNewUser,
   });
 
   factory TokenResponse.fromJson(Map<String, dynamic> json) =>

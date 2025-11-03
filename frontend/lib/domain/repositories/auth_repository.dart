@@ -16,6 +16,15 @@ abstract class AuthRepository {
     required String password,
   });
 
+  /// Login with social provider (Google/Apple)
+  Future<bool> socialLogin({
+    required String provider,
+    required String idToken,
+    String? accessToken,
+    String? authorizationCode,
+    String? nonce,
+  });
+
   /// Logout and clear authentication data
   Future<void> logout();
 

@@ -65,6 +65,40 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<bool> socialLogin({
+    required String provider,
+    required String idToken,
+    String? accessToken,
+    String? authorizationCode,
+    String? nonce,
+  }) async {
+    try {
+      final tokenResponse = await remoteDataSource.socialLogin(
+        provider: provider,
+        idToken: idToken,
+        accessToken: accessToken,
+        authorizationCode: authorizationCode,
+        nonce: nonce,
+      );
+
+      // Save token and email to local storage
+      await localDataSource.saveAccessToken(tokenResponse.accessToken);
+      // Extract email from token response if available, or from user data
+      final email = tokenResponse.user?.email ?? '';
+      if (email.isNotEmpty) {
+        await localDataSource.saveUserEmail(email);
+      }
+
+      return true;
+    } catch (e) {
+      if (e is ApiException) {
+        rethrow;
+      }
+      throw UnknownException(message: 'Social login failed: ${e.toString()}');
+    }
+  }
+
+  @override
   Future<void> logout() async {
     await localDataSource.clearAuthData();
   }

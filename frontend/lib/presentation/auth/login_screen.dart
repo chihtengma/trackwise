@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/di/service_locator.dart';
+import '../../data/services/social_auth_service.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../widgets/google_logo.dart';
 import 'signup_screen.dart';
@@ -20,6 +23,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
+  bool _isAppleLoading = false;
+
+  final SocialAuthService _socialAuthService = SocialAuthService();
 
   @override
   void dispose() {
@@ -222,6 +229,124 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
         }
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isGoogleLoading = true);
+
+    try {
+      final result = await _socialAuthService.signInWithGoogle();
+
+      if (result == null) {
+        // User cancelled
+        setState(() => _isGoogleLoading = false);
+        return;
+      }
+
+      // Send Google authentication to backend
+      final authRepo = getIt<AuthRepository>();
+      final success = await authRepo.socialLogin(
+        provider: result.provider,
+        idToken: result.idToken ?? '',
+        accessToken: result.accessToken,
+      );
+
+      if (success && mounted) {
+        setState(() => _isGoogleLoading = false);
+        _showSnackBar(
+          'Google Sign-In successful! Welcome to TrackWise!',
+          isError: false,
+          icon: Icons.celebration,
+        );
+
+        // Navigate to home after delay
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (mounted) {
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/home', (route) => false);
+        }
+      }
+    } on SocialAuthException catch (e) {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+        _showErrorDialog(
+          'Google Sign-In Failed',
+          e.message,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+        _showSnackBar(
+          'An unexpected error occurred',
+          icon: Icons.error_outline,
+        );
+      }
+    }
+  }
+
+  Future<void> _handleAppleSignIn() async {
+    // Check if platform supports Apple Sign-In
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      _showSnackBar(
+        'Apple Sign-In is only available on Apple devices',
+        icon: Icons.info_outline,
+      );
+      return;
+    }
+
+    setState(() => _isAppleLoading = true);
+
+    try {
+      final result = await _socialAuthService.signInWithApple();
+
+      if (result == null) {
+        // User cancelled
+        setState(() => _isAppleLoading = false);
+        return;
+      }
+
+      // Send Apple authentication to backend
+      final authRepo = getIt<AuthRepository>();
+      final success = await authRepo.socialLogin(
+        provider: result.provider,
+        idToken: result.idToken ?? '',
+        authorizationCode: result.authorizationCode,
+        nonce: result.nonce,
+      );
+
+      if (success && mounted) {
+        setState(() => _isAppleLoading = false);
+        _showSnackBar(
+          'Apple Sign-In successful! Welcome to TrackWise!',
+          isError: false,
+          icon: Icons.celebration,
+        );
+
+        // Navigate to home after delay
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (mounted) {
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/home', (route) => false);
+        }
+      }
+    } on SocialAuthException catch (e) {
+      if (mounted) {
+        setState(() => _isAppleLoading = false);
+        _showErrorDialog(
+          'Apple Sign-In Failed',
+          e.message,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isAppleLoading = false);
+        _showSnackBar(
+          'An unexpected error occurred',
+          icon: Icons.error_outline,
+        );
       }
     }
   }
@@ -599,16 +724,28 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ],
                                   ),
                                   child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      _showSnackBar(
-                                        'Google sign in coming soon!',
-                                        isError: false,
-                                        icon: Icons.info_outline,
-                                      );
-                                    },
-                                    icon: const GoogleLogo(size: 18),
+                                    onPressed: _isGoogleLoading ||
+                                            _isAppleLoading ||
+                                            _isLoading
+                                        ? null
+                                        : _handleGoogleSignIn,
+                                    icon: _isGoogleLoading
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                Color(0xFF6366F1),
+                                              ),
+                                            ),
+                                          )
+                                        : const GoogleLogo(size: 18),
                                     label: Text(
-                                      'Continue with Google',
+                                      _isGoogleLoading
+                                          ? 'Signing in...'
+                                          : 'Continue with Google',
                                       style: GoogleFonts.inter(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500,
@@ -643,20 +780,32 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ],
                                   ),
                                   child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      _showSnackBar(
-                                        'Apple sign in coming soon!',
-                                        isError: false,
-                                        icon: Icons.info_outline,
-                                      );
-                                    },
-                                    icon: const Icon(
-                                      Icons.apple,
-                                      size: 22,
-                                      color: Colors.white,
-                                    ),
+                                    onPressed: _isGoogleLoading ||
+                                            _isAppleLoading ||
+                                            _isLoading
+                                        ? null
+                                        : _handleAppleSignIn,
+                                    icon: _isAppleLoading
+                                        ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.apple,
+                                            size: 22,
+                                            color: Colors.white,
+                                          ),
                                     label: Text(
-                                      'Continue with Apple',
+                                      _isAppleLoading
+                                          ? 'Signing in...'
+                                          : 'Continue with Apple',
                                       style: GoogleFonts.inter(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500,

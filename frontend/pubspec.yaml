@@ -21,7 +21,7 @@ dependencies:
   pretty_dio_logger: ^1.4.0
 
   # Dependency Injection
-  get_it: ^8.0.2
+  get_it: ^9.0.1
 
   # JSON Serialization
   json_annotation: ^4.9.0
@@ -31,6 +31,11 @@ dependencies:
   shared_preferences: ^2.3.3
   flutter_dotenv: ^6.0.0
   flutter_secure_storage: ^9.2.2
+
+  # Social Authentication
+  google_sign_in: ^7.2.0
+  sign_in_with_apple: ^7.0.1
+  crypto: ^3.0.5
 
 dev_dependencies:
   flutter_test:
@@ -56,7 +61,6 @@ flutter:
     - .env
     - assets/images/
     - assets/images/onboarding/
-    - assets/images/splash/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -91,6 +91,41 @@ class Settings(BaseSettings):
         default=30, description="JWT token expiration time in minutes"
     )
 
+    # ==================== OAuth Settings ====================
+    # Google OAuth
+    GOOGLE_CLIENT_ID: Optional[str] = Field(
+        default=None,
+        description="Google OAuth 2.0 Client ID from Google Cloud Console"
+    )
+    GOOGLE_CLIENT_SECRET: Optional[str] = Field(
+        default=None,
+        description="Google OAuth 2.0 Client Secret from Google Cloud Console"
+    )
+
+    # Apple OAuth
+    APPLE_CLIENT_ID: Optional[str] = Field(
+        default=None,
+        description="Apple Sign-In Service ID (e.g., com.yourcompany.trackwise)"
+    )
+    APPLE_TEAM_ID: Optional[str] = Field(
+        default=None,
+        description="Apple Developer Team ID"
+    )
+    APPLE_KEY_ID: Optional[str] = Field(
+        default=None,
+        description="Apple Sign-In Private Key ID"
+    )
+    APPLE_PRIVATE_KEY: Optional[str] = Field(
+        default=None,
+        description="Apple Sign-In Private Key (P8 file content)"
+    )
+
+    # OAuth Redirect URIs
+    FRONTEND_URL: str = Field(
+        default="http://localhost:3000",
+        description="Frontend URL for OAuth redirects"
+    )
+
     # ==================== MTA Subway GTFS-Realtime Settings ====================
     MTA_API_KEY: Optional[str] = Field(
         default=None,

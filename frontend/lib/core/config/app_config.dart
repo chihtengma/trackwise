@@ -19,6 +19,7 @@ class AppConfig {
   // Auth endpoints
   String get loginEndpoint => '$apiBaseUrl/auth/login';
   String get registerEndpoint => '$apiBaseUrl/auth/register';
+  String get socialLoginEndpoint => '$apiBaseUrl/auth/social/login';
   
   // User endpoints
   String get userProfileEndpoint => '$apiBaseUrl/users/me';

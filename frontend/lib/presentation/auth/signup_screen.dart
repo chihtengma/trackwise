@@ -152,7 +152,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       try {
         final authRepo = getIt<AuthRepository>();
-        final user = await authRepo.register(
+        await authRepo.register(
           email: _emailController.text.trim(),
           username: _usernameController.text.trim(),
           password: _passwordController.text,
