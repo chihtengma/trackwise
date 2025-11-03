@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/di/service_locator.dart';
+import '../../data/services/social_auth_service.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../widgets/google_logo.dart';
 import 'login_screen.dart';
@@ -24,6 +28,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
+  bool _isAppleLoading = false;
+
+  final _socialAuthService = SocialAuthService();
 
   @override
   void dispose() {
@@ -111,6 +119,110 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+  void _showTermsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              const Icon(
+                Icons.description_outlined,
+                color: Color(0xFF6366F1),
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Terms and Conditions',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF2D3748),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Text(
+              '''Welcome to TrackWise! By using our service, you agree to the following terms:
+
+1. Account Responsibility
+You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.
+
+2. Service Usage
+TrackWise provides transit information and route planning services. We strive for accuracy but cannot guarantee real-time updates or service availability.
+
+3. User Conduct
+You agree to use TrackWise in a lawful manner and not to misuse or interfere with our services.
+
+4. Privacy
+Your privacy is important to us. Please review our Privacy Policy to understand how we collect, use, and protect your information.
+
+5. Service Availability
+We reserve the right to modify, suspend, or discontinue any part of our service at any time.
+
+6. Limitation of Liability
+TrackWise is provided "as is" without warranties. We are not liable for any delays, inaccuracies, or service interruptions.
+
+7. Changes to Terms
+We may update these terms from time to time. Continued use of TrackWise after changes constitutes acceptance.
+
+By creating an account, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.''',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: const Color(0xFF2D3748),
+                height: 1.6,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF718096),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _agreeToTerms = true;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6366F1),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                'I Agree',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showSnackBar(String message, {bool isError = true, IconData? icon}) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -144,6 +256,124 @@ class _SignUpScreenState extends State<SignUpScreen> {
         duration: Duration(seconds: isError ? 4 : 2),
       ),
     );
+  }
+
+  Future<void> _handleGoogleSignUp() async {
+    setState(() => _isGoogleLoading = true);
+
+    try {
+      final result = await _socialAuthService.signInWithGoogle();
+
+      if (result == null) {
+        // User cancelled
+        setState(() => _isGoogleLoading = false);
+        return;
+      }
+
+      // Send Google authentication to backend
+      final authRepo = getIt<AuthRepository>();
+      final success = await authRepo.socialLogin(
+        provider: result.provider,
+        idToken: result.idToken ?? '',
+        accessToken: result.accessToken,
+      );
+
+      if (success && mounted) {
+        setState(() => _isGoogleLoading = false);
+        _showSnackBar(
+          'Account created successfully! Welcome to TrackWise!',
+          isError: false,
+          icon: Icons.celebration,
+        );
+
+        // Navigate to home after delay
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (mounted) {
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/home', (route) => false);
+        }
+      }
+    } on SocialAuthException catch (e) {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+        _showErrorDialog(
+          'Google Sign-Up Failed',
+          e.message,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+        _showSnackBar(
+          'An unexpected error occurred',
+          icon: Icons.error_outline,
+        );
+      }
+    }
+  }
+
+  Future<void> _handleAppleSignUp() async {
+    // Check if platform supports Apple Sign-In
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      _showSnackBar(
+        'Apple Sign-In is only available on Apple devices',
+        icon: Icons.info_outline,
+      );
+      return;
+    }
+
+    setState(() => _isAppleLoading = true);
+
+    try {
+      final result = await _socialAuthService.signInWithApple();
+
+      if (result == null) {
+        // User cancelled
+        setState(() => _isAppleLoading = false);
+        return;
+      }
+
+      // Send Apple authentication to backend
+      final authRepo = getIt<AuthRepository>();
+      final success = await authRepo.socialLogin(
+        provider: result.provider,
+        idToken: result.idToken ?? '',
+        authorizationCode: result.authorizationCode,
+        nonce: result.nonce,
+      );
+
+      if (success && mounted) {
+        setState(() => _isAppleLoading = false);
+        _showSnackBar(
+          'Account created successfully! Welcome to TrackWise!',
+          isError: false,
+          icon: Icons.celebration,
+        );
+
+        // Navigate to home after delay
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (mounted) {
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/home', (route) => false);
+        }
+      }
+    } on SocialAuthException catch (e) {
+      if (mounted) {
+        setState(() => _isAppleLoading = false);
+        _showErrorDialog(
+          'Apple Sign-Up Failed',
+          e.message,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isAppleLoading = false);
+        _showSnackBar(
+          'An unexpected error occurred',
+          icon: Icons.error_outline,
+        );
+      }
+    }
   }
 
   Future<void> _handleSignUp() async {
@@ -708,6 +938,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                   decoration:
                                                       TextDecoration.underline,
                                                 ),
+                                                recognizer: TapGestureRecognizer()
+                                                  ..onTap = () {
+                                                    _showTermsDialog();
+                                                  },
                                               ),
                                             ],
                                           ),
@@ -841,19 +1075,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     ],
                                   ),
                                   child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Google sign up coming soon!'),
-                                          backgroundColor: Color(0xFF4285F4),
-                                        ),
-                                      );
-                                    },
-                                    icon: const GoogleLogo(size: 18),
+                                    onPressed:
+                                        _isGoogleLoading ? null : _handleGoogleSignUp,
+                                    icon: _isGoogleLoading
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      Color(0xFF2D3748)),
+                                            ),
+                                          )
+                                        : const GoogleLogo(size: 18),
                                     label: Text(
-                                      'Continue with Google',
+                                      _isGoogleLoading
+                                          ? 'Signing up...'
+                                          : 'Continue with Google',
                                       style: GoogleFonts.inter(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500,
@@ -888,23 +1127,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     ],
                                   ),
                                   child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Apple sign up coming soon!'),
-                                          backgroundColor: Colors.black,
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(
-                                      Icons.apple,
-                                      size: 22,
-                                      color: Colors.white,
-                                    ),
+                                    onPressed:
+                                        _isAppleLoading ? null : _handleAppleSignUp,
+                                    icon: _isAppleLoading
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      Colors.white),
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.apple,
+                                            size: 22,
+                                            color: Colors.white,
+                                          ),
                                     label: Text(
-                                      'Continue with Apple',
+                                      _isAppleLoading
+                                          ? 'Signing up...'
+                                          : 'Continue with Apple',
                                       style: GoogleFonts.inter(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500,

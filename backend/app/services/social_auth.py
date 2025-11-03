@@ -16,6 +16,7 @@ from sqlalchemy import select
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 import httpx
+from jose import jwt as jose_jwt, jwk
 
 from app.core.config import settings
 from app.core.security import create_access_token
@@ -88,7 +89,7 @@ class SocialAuthService:
             Dictionary with user information if valid, None otherwise
         """
         try:
-            # Get Apple's public keys
+            # Get Apple's public keys (JWKS)
             async with httpx.AsyncClient() as client:
                 response = await client.get('https://appleid.apple.com/auth/keys')
                 apple_keys = response.json()['keys']
@@ -96,6 +97,7 @@ class SocialAuthService:
             # Decode the token header to get the key ID
             header = jwt.get_unverified_header(id_token)
             kid = header.get('kid')
+            alg = header.get('alg')
 
             # Find the matching key
             apple_key = None
@@ -107,17 +109,22 @@ class SocialAuthService:
             if not apple_key:
                 raise ValueError('Unable to find matching Apple public key')
 
-            # Convert Apple's key to PEM format (simplified - in production use proper library)
-            # For now, we'll use unverified decode for development
-            # In production, use python-jose or PyJWT with proper RSA verification
-
-            # Decode without verification for development
-            # WARNING: In production, properly verify the signature!
-            claims = jwt.decode(
+            # Convert JWK to RSA key object for verification
+            public_key = jwk.construct(apple_key)
+            
+            # Verify and decode the token using Apple's public key
+            # python-jose needs the constructed key, not the raw JWK dict
+            claims = jose_jwt.decode(
                 id_token,
-                options={"verify_signature": False},  # Only for development!
-                audience=settings.APPLE_CLIENT_ID
+                public_key,
+                algorithms=[alg],
+                audience=settings.APPLE_CLIENT_ID if settings.APPLE_CLIENT_ID else None,
+                options={"verify_signature": True, "verify_aud": bool(settings.APPLE_CLIENT_ID)}
             )
+
+            # Verify issuer
+            if claims.get('iss') != 'https://appleid.apple.com':
+                raise ValueError('Invalid issuer')
 
             # Verify nonce if provided
             # Apple Sign-In nonce flow:
@@ -127,21 +134,15 @@ class SocialAuthService:
             # 4. Apple includes the SAME hashedNonce in the JWT token (not double-hashed)
             # 5. Frontend sends rawNonce to backend
             # So backend should hash rawNonce once: SHA256(rawNonce) to match token
-            # 
-            # However, some implementations show Apple hashes it again. For now, we'll try both
-            # and just log a warning if mismatch - authentication still succeeds via token signature.
             if nonce:
                 token_nonce = claims.get('nonce')
                 if token_nonce:
-                    # Try single hash first (most common)
-                    single_hash = hashlib.sha256(nonce.encode('utf-8')).hexdigest()
+                    # Hash the raw nonce to match what Apple includes
+                    hashed_nonce = hashlib.sha256(nonce.encode('utf-8')).hexdigest()
                     
-                    # If that doesn't match, try double hash (some Apple implementations)
-                    if token_nonce.lower() != single_hash.lower():
-                        double_hash = hashlib.sha256(single_hash.encode('utf-8')).hexdigest()
-                        if token_nonce.lower() != double_hash.lower():
-                            # Nonce mismatch - log but continue (token signature is what matters)
-                            print(f'Nonce verification note (auth still succeeds): token={token_nonce[:16]}..., single_hash={single_hash[:16]}..., double_hash={double_hash[:16]}...')
+                    if token_nonce.lower() != hashed_nonce.lower():
+                        # Log warning but still allow auth (signature verification is what matters)
+                        print(f'Nonce mismatch (auth continues): expected={hashed_nonce[:16]}..., got={token_nonce[:16]}...')
                 # No nonce in token is acceptable for subsequent logins
 
             # Extract user information

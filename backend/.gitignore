@@ -44,6 +44,7 @@ env/
 # Apple Sign-In private keys
 *.p8
 AuthKey_*.p8
+.secrets/
 
 # Database
 *.db

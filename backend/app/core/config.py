@@ -8,7 +8,8 @@ IMPORTANT: Copy .env.example to .env and configure your values!
 """
 
 from typing import List, Optional
-from pydantic import Field, field_validator, ValidationError
+from pathlib import Path
+from pydantic import Field, field_validator, ValidationError, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -117,7 +118,11 @@ class Settings(BaseSettings):
     )
     APPLE_PRIVATE_KEY: Optional[str] = Field(
         default=None,
-        description="Apple Sign-In Private Key (P8 file content)"
+        description="Apple Sign-In Private Key (P8 file content or path)"
+    )
+    APPLE_PRIVATE_KEY_PATH: Optional[str] = Field(
+        default=None,
+        description="Path to Apple Sign-In Private Key file (.p8). If set, loads key from file."
     )
 
     # OAuth Redirect URIs
@@ -284,6 +289,25 @@ class Settings(BaseSettings):
     def is_staging(self) -> bool:
         """Check if running in staging environment."""
         return self.ENVIRONMENT.lower() == "staging"
+
+    @model_validator(mode='after')
+    def load_apple_private_key(self) -> 'Settings':
+        """Load Apple private key from file if path is provided."""
+        if self.APPLE_PRIVATE_KEY_PATH and not self.APPLE_PRIVATE_KEY:
+            key_path = Path(self.APPLE_PRIVATE_KEY_PATH)
+            if key_path.is_absolute():
+                full_path = key_path
+            else:
+                # Relative to backend directory
+                backend_dir = Path(__file__).parent.parent.parent
+                full_path = backend_dir / key_path
+
+            if full_path.exists():
+                with open(full_path, 'r') as f:
+                    self.APPLE_PRIVATE_KEY = f.read()
+            else:
+                print(f"Warning: Apple private key file not found at {full_path}")
+        return self
 
 
 # ==================== Initialize Settings ====================

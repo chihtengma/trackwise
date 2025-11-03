@@ -112,6 +112,102 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _showInvalidCredentialsDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEBEE),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: Color(0xFFE53935),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Invalid Credentials',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF2D3748),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'The email or password you entered is incorrect. Please check your credentials and try again.',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: const Color(0xFF718096),
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showSnackBar(
+                  'Password reset coming soon!',
+                  isError: false,
+                  icon: Icons.info_outline,
+                );
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF718096),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              child: Text(
+                'Forgot Password?',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6366F1),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                'OK',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showSnackBar(String message, {bool isError = true, IconData? icon}) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -163,7 +259,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (success) {
             // Show success message
-            _showSnackBar('Login successful!', isError: false);
+            _showSnackBar('Signed in successfully! Welcome to TrackWise!',
+                isError: false, icon: Icons.celebration);
 
             // Small delay for user to see success message
             await Future.delayed(const Duration(milliseconds: 800));
@@ -186,15 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (errorStr.contains('unauthorizedexception') ||
               errorStr.contains('401') ||
               errorStr.contains('unauthorized')) {
-            _showErrorDialog(
-              'Invalid Credentials',
-              'The email or password you entered is incorrect. Please double-check your credentials and try again.',
-              actionText: 'Forgot Password?',
-              onAction: () {
-                _showSnackBar('Password reset coming soon!',
-                    isError: false, icon: Icons.info_outline);
-              },
-            );
+            _showInvalidCredentialsDialog();
           } else if (errorStr.contains('networkexception') ||
               errorStr.contains('socketexception') ||
               errorStr.contains('connection')) {
@@ -256,7 +345,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (success && mounted) {
         setState(() => _isGoogleLoading = false);
         _showSnackBar(
-          'Google Sign-In successful! Welcome to TrackWise!',
+          'Signed in successfully! Welcome to TrackWise!',
           isError: false,
           icon: Icons.celebration,
         );
@@ -320,7 +409,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (success && mounted) {
         setState(() => _isAppleLoading = false);
         _showSnackBar(
-          'Apple Sign-In successful! Welcome to TrackWise!',
+          'Signed in successfully! Welcome to TrackWise!',
           isError: false,
           icon: Icons.celebration,
         );
