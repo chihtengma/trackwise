@@ -254,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ).createShader(bounds),
                               child: Text(
                                 'TrackWise',
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.pollerOne(
                                   fontSize: 36,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
